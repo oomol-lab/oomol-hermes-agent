@@ -3,20 +3,27 @@
 ## Prerequisites
 
 - Git
-- Docker with BuildKit
-- `uv`
-- Python 3.11 through 3.13 for repository tests
+- Docker with BuildKit and Docker Compose
+
+Python and `uv` are implementation details inside the build containers. They
+do not need to be installed on the development host.
 
 ## Repository Tests
 
 ```sh
-uv sync
-uv run pytest
+make test
 ```
 
 These tests validate the version lock, Docker defaults, Skill assembly safety,
 OO Skill metadata transformation, and required repository layout. They do not
-replace an image build.
+replace an image build. The equivalent command without Make is:
+
+```sh
+docker build --progress=plain \
+  --file Dockerfile.test \
+  --target repository-tests \
+  .
+```
 
 ## Image Build
 
@@ -32,15 +39,23 @@ Smoke commands:
 ```sh
 docker run --rm oomol-hermes-agent:dev oo --version
 docker run --rm oomol-hermes-agent:dev hermes --help
+docker run --rm oomol-hermes-agent:dev hermes plugins list --plain
 ```
 
-The native linux/arm64 build and both smoke commands passed with Hermes
-`0.20.2` and OO CLI `1.7.4` on 2026-08-17. Linux/amd64 remains a release
-acceptance check.
+The native linux/arm64 build and these smoke commands passed with Hermes
+`0.20.2` and OO CLI `1.7.4` on 2026-08-17. Plugin discovery reported
+`oo_gpt_image_2`, `oo_nano_banana`, `oo_seedance`, and `oo_jina` as enabled.
+Linux/amd64 remains a release acceptance check.
 
-For authentication checks, use the Compose `OO_API_KEY` flow or the persistent
-volume commands in the root README. Never place credentials in build arguments,
-image layers, or committed files.
+For an authentication check using the Compose-managed `OO_API_KEY`, run:
+
+```sh
+docker compose -f compose.yaml -f compose.dev.yaml run --rm hermes \
+  oo auth status --json
+```
+
+Never place credentials in build arguments, image layers, command literals, or
+committed files.
 
 ## Editing Skills
 
@@ -62,8 +77,8 @@ upload, polling, and response-normalization logic into a shared module.
 ## Useful Checks
 
 ```sh
-python -m compileall -q scripts plugins
-git diff --check
+make check
 ```
 
-Use Linux line endings for all text files.
+`make check` runs repository tests in Docker and then checks the working-tree
+diff. Use Linux line endings for all text files.

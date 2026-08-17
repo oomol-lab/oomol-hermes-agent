@@ -69,7 +69,8 @@ internal operational code from `oomol/hermes-agent` merely because it exists.
 
 ## Validation And Commits
 
-- Use `uv` for repository tooling and validate proportionally to the change.
+- Run repository tooling through Docker. `uv` may be used inside build
+  containers but must not be a host prerequisite.
 - Follow `docs/development.md`; release and upstream changes require the full
   Docker integration test.
 - Run `git diff --check` before committing.

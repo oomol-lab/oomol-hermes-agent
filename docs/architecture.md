@@ -45,7 +45,10 @@ All mutable state is below `/data`:
 | `/data/workspace` | Default agent workspace |
 
 Image-owned code, Plugins, and Skills remain below `/opt` and are read-only at
-runtime.
+runtime. Hermes lives at `/opt/hermes`, distribution assets live at
+`/opt/oomol-hermes-agent`, and the uv-managed Python interpreter selected by the
+pinned Hermes source lives at `/opt/uv-python` so it remains executable after
+the container switches to the non-root `hermes` user.
 
 The entrypoint only creates missing directories and seeds Hermes configuration
 on first start. It does not authenticate OO, download Skills, or call a remote
