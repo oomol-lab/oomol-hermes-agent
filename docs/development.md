@@ -37,19 +37,25 @@ artifact host, Debian repositories, and Python package indexes.
 Smoke commands:
 
 ```sh
-docker run --rm oomol-hermes-agent:dev oo --version
-docker run --rm oomol-hermes-agent:dev hermes --help
-docker run --rm oomol-hermes-agent:dev hermes plugins list --plain
+docker run --rm -e OO_API_KEY -e OO_LLM_BASE_URL -e OO_LLM_MODEL -e OO_LLM_API_MODE \
+  oomol-hermes-agent:dev oo --version
+docker run --rm -e OO_API_KEY -e OO_LLM_BASE_URL -e OO_LLM_MODEL -e OO_LLM_API_MODE \
+  oomol-hermes-agent:dev hermes --help
+docker run --rm -e OO_API_KEY -e OO_LLM_BASE_URL -e OO_LLM_MODEL -e OO_LLM_API_MODE \
+  oomol-hermes-agent:dev hermes plugins list --plain
 ```
+
+Export all four variables before running image commands. `.env.example`
+contains the recommended base URL, model, and API mode; never put an API key in
+a command literal.
 
 The native linux/arm64 build and these smoke commands passed with Hermes
 `0.20.2` and OO CLI `1.7.4` on 2026-08-17. Plugin discovery reported
 `oo_gpt_image_2`, `oo_nano_banana`, `oo_seedance`, and `oo_jina` as enabled.
 Linux/amd64 remains a release acceptance check.
 
-Provider authentication tests cover an existing login, optional device login,
-and an invalid `OO_API_KEY`. The native image check also verifies that a fresh
-logged-out container returns an official OOMOL device-login URL.
+Runtime tests cover required environment validation, base-URL and API-mode
+validation, and invalid `OO_API_KEY` behavior in the connector providers.
 
 To inspect authentication from the Compose-managed container, run:
 

@@ -2,8 +2,8 @@
 
 OOMOL Hermes Agent is an opinionated Docker distribution of
 [Hermes Agent](https://github.com/NousResearch/hermes-agent). It bundles the OO
-CLI, curated document and research Skills, and OOMOL-backed image, video, and
-web-search providers.
+CLI, curated document and research Skills, and OOMOL-backed language-model,
+image, video, and web-search providers.
 
 This is a standalone open-source distribution project. It is not the OOMOL
 production Hermes fork and does not contain OOMOL Platform Bindings, Leina, or
@@ -16,6 +16,8 @@ internal operations tooling.
 - Full routing descriptions for the four OO framework Skills while preserving
   Hermes's 60-character default for ordinary Skills.
 - Curated Office, PDF, and public-social-research Skills.
+- OOMOL LLM as the default Hermes model provider, with an explicitly selected
+  OpenAI-compatible API mode.
 - GPT Image 2, Nano Banana, Seedance, and Jina provider Plugins backed by OO.
 - Build-time Office/PDF, Plugin syntax, and Skill assembly verification.
 
@@ -36,8 +38,9 @@ Current pinned components:
 ## Install With Docker Compose
 
 Docker Compose is the recommended installation and distribution path. It keeps
-the image, gateway port, `OO_API_KEY`, and persistent `/data` volume in one
-declarative configuration. The gateway binds to `127.0.0.1:8766` by default.
+the image, gateway port, required OOMOL model configuration, and persistent
+`/data` volume in one declarative configuration. The gateway binds to
+`127.0.0.1:8766` by default.
 
 Prepare the local environment file:
 
@@ -46,22 +49,21 @@ cp .env.example .env
 chmod 600 .env
 ```
 
-`OO_API_KEY` is the only OO-specific Compose environment variable, and it is
-optional. When set, OO CLI reads it directly as an in-memory credential and no
-interactive login is required. When left empty, Hermes still starts normally.
-The first request that reaches an OO image, video, or search provider starts one
-shared OO device-login flow and returns its browser URL to the chat. Open the
-URL, finish login, and retry the request; OO CLI persists the completed login
-under `/data/.config/oo`.
+Fill in `OO_API_KEY` before starting the container. The example file recommends
+the normal OOMOL base URL, `deepseek-v4-flash`, and `codex_responses`. Change
+`OO_LLM_MODEL` or `OO_LLM_API_MODE` when the selected OOMOL-hosted model
+requires a different setting. `OO_LLM_BASE_URL` normally should not be changed.
+The supported API modes are `codex_responses` and `chat_completions`. All four
+variables are required at runtime; their recommended values live only in
+`.env.example`, not as hidden application defaults.
 
-You can also start the same login flow manually:
+At startup, the entrypoint validates the declared base URL locally without
+making a remote health check. The key remains in the process environment and is
+never written into Hermes configuration. A missing variable or malformed base
+URL stops startup with a sanitized error.
 
-```sh
-docker compose exec hermes oo auth login
-```
-
-Compose passes `OO_API_KEY` to the bundled providers and Hermes terminal
-subprocesses when it is present.
+Compose passes the model settings to Hermes and makes `OO_API_KEY` available to
+the bundled language, image, video, and search providers.
 
 The image has not been published to GHCR yet. Until the first release, build and
 start it from this checkout with the development override:
@@ -93,10 +95,12 @@ Use `docker compose run --rm hermes hermes` for a one-off interactive Hermes
 CLI. `docker compose down` stops the gateway but preserves `hermes-data`.
 `docker compose down -v` also deletes configuration and workspace data.
 
-The first start seeds `/data/.hermes/config.yaml`; later starts never overwrite
-it. Keep `.env` private: it is ignored by Git and excluded from the Docker build
-context, but Docker still exposes container environment variables to users with
-daemon access.
+The first start seeds `/data/.hermes/config.yaml` with the OOMOL model provider;
+later starts never overwrite it. Existing development volumes created before
+this provider was added must be updated manually or recreated. Keep `.env`
+private: it is ignored by Git and excluded from the Docker build context, but
+Docker still exposes container environment variables to users with daemon
+access.
 
 ## Local Build And Direct Docker Use
 
@@ -116,13 +120,16 @@ The build downloads the pinned Hermes source and OO CLI. It fails if the Hermes
 patch no longer applies, a checksum differs, an allowlisted Skill is missing,
 or the bundled document runtime cannot create and verify representative files.
 
-For low-level Docker use, export `OO_API_KEY` in the host shell and pass it by
-name so its value is not embedded in the command:
+For low-level Docker use, export all four runtime variables in the host shell
+and pass them by name so the credential is not embedded in the command:
 
 ```sh
 docker volume create oomol-hermes-agent-data
 docker run --rm -it \
   -e OO_API_KEY \
+  -e OO_LLM_BASE_URL \
+  -e OO_LLM_MODEL \
+  -e OO_LLM_API_MODE \
   -v oomol-hermes-agent-data:/data \
   oomol-hermes-agent:dev
 ```
@@ -132,13 +139,16 @@ Start a gateway the same way:
 ```sh
 docker run --rm -it \
   -e OO_API_KEY \
+  -e OO_LLM_BASE_URL \
+  -e OO_LLM_MODEL \
+  -e OO_LLM_API_MODE \
   -p 8766:8766 \
   -v oomol-hermes-agent-data:/data \
   oomol-hermes-agent:dev \
   hermes gateway run
 ```
 
-For fast local checks that do not need OO credentials, Make also provides:
+After exporting the same four variables, Make also provides:
 
 ```sh
 make run
@@ -146,9 +156,10 @@ make run-clean
 make gateway
 ```
 
-These targets intentionally do not manage OO authentication. Use Compose for
-the normal credential-bearing workflow. `run-clean` uses disposable `/data`
-state; `run` and `gateway` use the named `oomol-hermes-agent-data` volume.
+These targets pass the named variables through without reading `.env` or
+persisting credentials. Use Compose for the normal workflow. `run-clean` uses
+disposable `/data` state; `run` and `gateway` use the named
+`oomol-hermes-agent-data` volume.
 
 ## Development
 

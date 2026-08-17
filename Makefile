@@ -7,6 +7,7 @@ DOCKER ?= docker
 COMMAND ?=
 COMPOSE ?= $(DOCKER) compose
 DEV_COMPOSE_FILES := -f compose.yaml -f compose.dev.yaml
+RUNTIME_ENV := -e OO_API_KEY -e OO_LLM_BASE_URL -e OO_LLM_MODEL -e OO_LLM_API_MODE
 
 .DEFAULT_GOAL := help
 
@@ -41,7 +42,7 @@ build:
 	$(DOCKER) build --progress=plain -t "$(IMAGE)" .
 
 smoke:
-	$(DOCKER) run --rm "$(IMAGE)" hermes --help
+	$(DOCKER) run --rm $(RUNTIME_ENV) "$(IMAGE)" hermes --help
 
 volume:
 	@$(DOCKER) volume inspect "$(DATA_VOLUME)" >/dev/null 2>&1 || \
@@ -49,14 +50,16 @@ volume:
 
 run: volume
 	$(DOCKER) run --rm -it \
+		$(RUNTIME_ENV) \
 		-v "$(DATA_VOLUME):/data" \
 		"$(IMAGE)" $(COMMAND)
 
 run-clean:
-	$(DOCKER) run --rm -it "$(IMAGE)" $(COMMAND)
+	$(DOCKER) run --rm -it $(RUNTIME_ENV) "$(IMAGE)" $(COMMAND)
 
 gateway: volume
 	$(DOCKER) run --rm -it \
+		$(RUNTIME_ENV) \
 		-p "$(GATEWAY_PORT):8766" \
 		-v "$(DATA_VOLUME):/data" \
 		"$(IMAGE)" hermes gateway run

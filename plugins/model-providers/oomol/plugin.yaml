@@ -1,0 +1,5 @@
+name: oomol-llm-provider
+kind: model-provider
+version: 1.0.0
+description: OOMOL-hosted OpenAI-compatible language models
+author: OOMOL

@@ -41,7 +41,7 @@ All mutable state is below `/data`:
 | Path | Purpose |
 | --- | --- |
 | `/data/.hermes` | Hermes configuration, sessions, user Skills, and state |
-| `/data/.config/oo` | Optional persisted OO authentication and configuration |
+| `/data/.config/oo` | Optional OO CLI configuration and state; the distribution does not persist its runtime LLM key here |
 | `/data/workspace` | Default agent workspace |
 
 Image-owned code, Plugins, and Skills remain below `/opt` and are read-only at
@@ -50,19 +50,17 @@ runtime. Hermes lives at `/opt/hermes`, distribution assets live at
 Python 3.11 interpreter, which remains executable after the container switches
 to the non-root `hermes` user.
 
-The entrypoint only creates missing directories and seeds Hermes configuration
-on first start. It does not authenticate OO, download Skills, or call a remote
-service.
+The entrypoint requires `OO_API_KEY`, `OO_LLM_BASE_URL`, `OO_LLM_MODEL`, and
+`OO_LLM_API_MODE`. It validates the API mode against a small allowlist and
+checks that the declared base URL is an HTTPS `/v1` endpoint before starting
+Hermes. It does not perform a remote health check, persist the API key, download
+Skills, or call a remote service.
 
-For non-interactive deployments, Compose can pass the optional `OO_API_KEY`
-directly to Hermes and its terminal subprocesses. OO CLI treats it as an
-in-memory active credential. Without the environment override, the first OO
-provider request checks local authentication, starts one bounded shared
-`oo auth login` process when needed, and returns the device-login URL to the
-chat. That process keeps polling while the user logs in and persists the result
-under `/data/.config/oo`; the user then retries the original request.
-
-No authentication check or login process runs during container startup.
+`OO_API_KEY` is the sole credential source for the main language model and the
+other OO-backed providers. `OO_LLM_BASE_URL` declares the fixed OOMOL endpoint,
+`OO_LLM_MODEL` selects the model, and `OO_LLM_API_MODE` selects either
+`codex_responses` or `chat_completions`. Recommended values are declared in
+`.env.example`; the runtime has no hidden endpoint, model, or API-mode fallback.
 
 ## Skill Description Exception
 
@@ -73,8 +71,11 @@ framework Skills. This avoids increasing the prompt footprint of every Skill.
 
 ## Plugin Providers
 
-Provider Plugins adapt Hermes's existing provider ABCs to OO connector actions:
+Provider Plugins adapt Hermes's existing provider ABCs to OOMOL inference and
+OO connector actions:
 
+- `oomol`: the main language-model provider, using the runtime-selected model
+  and OpenAI-compatible API mode.
 - `oo_gpt_image_2`: text-to-image and image editing.
 - `oo_nano_banana`: Nano Banana image generation variants.
 - `oo_seedance`: text/image-to-video generation.
@@ -87,8 +88,9 @@ Hermes terminal.
 ## Configuration
 
 `config/config.seed.yaml` is copied only when `$HERMES_HOME/config.yaml` does
-not exist. It enables bundled providers and exposes their existing Hermes
-toolsets. Users retain full control after first start.
+not exist. It selects the OOMOL language-model provider through environment
+placeholders, enables the other bundled providers, and exposes their existing
+Hermes toolsets. Users retain full control after first start.
 
 Future configuration migrations must merge only missing distribution-owned
 keys and must never replace user model, platform, Skill, or provider choices.

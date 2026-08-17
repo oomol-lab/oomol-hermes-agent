@@ -65,8 +65,8 @@ tools were intentionally not migrated.
 
 ## Provider Authentication Update (2026-08-17)
 
-- Kept `OO_API_KEY` optional. It remains the non-interactive environment
-  override when supplied.
+- Initially kept `OO_API_KEY` optional and added a shared device-login fallback
+  for the four connector-backed providers.
 - Added one shared authentication manager for all four OO providers. A provider
   hit while logged out starts `oo auth login`, returns the device-login URL to
   the chat, and keeps the bounded background process alive to persist the
@@ -76,6 +76,22 @@ tools were intentionally not migrated.
 - Verified the logged-out URL flow in the final non-root image without making
   authentication a container-startup dependency.
 
+## OOMOL Main Model Update (2026-08-17)
+
+- Made `OO_API_KEY`, `OO_LLM_BASE_URL`, `OO_LLM_MODEL`, and `OO_LLM_API_MODE`
+  required runtime inputs because OOMOL now supplies the main Hermes language
+  model.
+- Added the `oomol` model-provider Plugin through Hermes's provider ABC. It
+  supports explicit `codex_responses` and `chat_completions` modes without a
+  Hermes core patch.
+- Declared the fixed OOMOL base URL directly through the environment and added
+  local HTTPS `/v1` validation. Startup performs no OO CLI configuration query
+  or remote health check.
+- Seeded the normal base URL, `deepseek-v4-flash`, and `codex_responses` as
+  recommendations in `.env.example`; none is a hidden runtime default.
+- Retained first-start-only Hermes config seeding. Pre-existing volumes need a
+  manual model configuration update or recreation.
+
 ## Next Work, In Order
 
 1. Run the first complete linux/amd64 Docker build and fix only real integration
@@ -83,8 +99,8 @@ tools were intentionally not migrated.
 2. Automate the image-level Plugin discovery check currently run manually.
 3. Consolidate repeated OO subprocess, upload, polling, response parsing, and
    redaction code shared by provider Plugins.
-4. Add `doctor` output for environment or persisted login, binary, and connector
-   access states.
+4. Add `doctor` output for required environment, binary, model endpoint, and
+   connector access states.
 5. Add safe config migrations for existing volumes before changing seed
    defaults after the first release.
 6. Confirm and document OO CLI redistribution/license terms.
@@ -106,12 +122,13 @@ tools were intentionally not migrated.
 - Both supported architectures build from a clean checkout.
 - Rebuilding with identical inputs resolves the same Hermes and OO versions.
 - Container startup performs no network access.
-- Hermes starts without OO authentication.
-- OO authentication works through runtime `OO_API_KEY` or persisted `/data`
-  state, and no credential enters image layers.
+- Hermes fails clearly when required OOMOL runtime variables are absent.
+- OOMOL authentication uses runtime `OO_API_KEY`, and no credential enters
+  image layers or persisted configuration.
 - All four OO framework Skills appear with their full routing descriptions.
 - Ordinary Skills retain the 60-character default.
-- Curated Skills and all four Provider Plugins are discoverable.
+- Curated Skills, the OOMOL model provider, and all four connector-backed
+  Provider Plugins are discoverable.
 - Representative Office/PDF work passes the image build verification.
 - Public CI, image documentation, license notices, SBOM, and security contact
   are present.

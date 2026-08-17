@@ -71,6 +71,7 @@ RUN set -eu; \
     oo --version
 
 COPY plugins/image_gen/ /opt/hermes/plugins/image_gen/
+COPY plugins/model-providers/ /opt/hermes/plugins/model-providers/
 COPY plugins/video_gen/ /opt/hermes/plugins/video_gen/
 COPY plugins/web/ /opt/hermes/plugins/web/
 COPY plugins/common/ /opt/oomol-hermes-agent/provider-common/
@@ -97,11 +98,18 @@ RUN uv pip install --python /opt/hermes/.venv/bin/python \
     && node --check /opt/oomol-hermes-agent/curated-skills/research/public-social-research/scripts/tikhub.mjs \
     && python -m compileall -q /opt/hermes/plugins/image_gen/oo_gpt_image_2 \
         /opt/hermes/plugins/image_gen/oo_nano_banana \
+        /opt/hermes/plugins/model-providers/oomol \
         /opt/hermes/plugins/video_gen/oo_seedance \
         /opt/hermes/plugins/web/oo_jina \
     && PYTHONPATH=/opt/oomol-hermes-agent/provider-common \
         /opt/hermes/.venv/bin/python -c \
         'import importlib; [importlib.import_module(name) for name in ("plugins.image_gen.oo_gpt_image_2", "plugins.image_gen.oo_nano_banana", "plugins.video_gen.oo_seedance", "plugins.web.oo_jina")]' \
+    && OO_API_KEY=build-placeholder \
+        OO_LLM_MODEL=build-model \
+        OO_LLM_API_MODE=codex_responses \
+        OO_LLM_BASE_URL=https://example.invalid/v1 \
+        /opt/hermes/.venv/bin/python -c \
+        'from providers import get_provider_profile; profile = get_provider_profile("oomol"); assert profile and profile.api_mode == "codex_responses"' \
     && /opt/hermes/.venv/bin/python /opt/oomol-hermes-agent/scripts/verify-document-runtime.py
 
 ARG HERMES_UID=10000

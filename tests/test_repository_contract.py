@@ -93,6 +93,10 @@ def test_seeded_plugins_have_manifests_and_sources() -> None:
         assert (plugin / "plugin.yaml").is_file(), key
         assert (plugin / "__init__.py").is_file(), key
 
+    model_provider = ROOT / "plugins" / "model-providers" / "oomol"
+    assert (model_provider / "plugin.yaml").is_file()
+    assert (model_provider / "__init__.py").is_file()
+
 
 def test_description_patch_is_fail_closed() -> None:
     dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
@@ -114,11 +118,62 @@ def test_public_compose_uses_published_image_and_persistent_data() -> None:
     assert service["command"] == ["hermes", "gateway", "run"]
     assert "hermes-data:/data" in service["volumes"]
     assert "hermes-data" in compose["volumes"]
-    assert service["environment"]["OO_API_KEY"] == "${OO_API_KEY:-}"
+    assert service["environment"]["OO_API_KEY"] == (
+        "${OO_API_KEY:?OO_API_KEY is required}"
+    )
+    assert service["environment"]["OO_LLM_BASE_URL"] == (
+        "${OO_LLM_BASE_URL:?OO_LLM_BASE_URL is required}"
+    )
+    assert service["environment"]["OO_LLM_MODEL"] == (
+        "${OO_LLM_MODEL:?OO_LLM_MODEL is required}"
+    )
+    assert service["environment"]["OO_LLM_API_MODE"] == (
+        "${OO_LLM_API_MODE:?OO_LLM_API_MODE is required}"
+    )
     assert "oo-auth" not in compose["services"]
 
     seed = yaml.safe_load((ROOT / "config/config.seed.yaml").read_text())
     assert "OO_API_KEY" in seed["terminal"]["env_passthrough"]
+    assert "OO_LLM_BASE_URL" in seed["terminal"]["env_passthrough"]
+    assert "OO_LLM_MODEL" in seed["terminal"]["env_passthrough"]
+    assert "OO_LLM_API_MODE" in seed["terminal"]["env_passthrough"]
+    assert seed["model"] == {
+        "provider": "oomol",
+        "default": "${OO_LLM_MODEL}",
+        "base_url": "${OO_LLM_BASE_URL}",
+        "api_mode": "${OO_LLM_API_MODE}",
+    }
+
+
+def test_oo_llm_runtime_contract_is_explicit_and_has_no_code_defaults() -> None:
+    env_example = (ROOT / ".env.example").read_text(encoding="utf-8")
+    assert "OO_API_KEY=\n" in env_example
+    assert "OO_LLM_BASE_URL=https://llm.oomol.com/v1\n" in env_example
+    assert "OO_LLM_MODEL=deepseek-v4-flash\n" in env_example
+    assert "OO_LLM_API_MODE=codex_responses\n" in env_example
+
+    entrypoint = (ROOT / "scripts/entrypoint.sh").read_text(encoding="utf-8")
+    for variable in (
+        "OO_API_KEY",
+        "OO_LLM_BASE_URL",
+        "OO_LLM_MODEL",
+        "OO_LLM_API_MODE",
+    ):
+        assert f"error: {variable} is required" in entrypoint
+    assert "chat_completions|codex_responses" in entrypoint
+    assert "https://*/v1|https://*/v1/" in entrypoint
+    assert "must contain a safe hostname" in entrypoint
+    assert "oo llm config" not in entrypoint
+
+    provider = (
+        ROOT / "plugins" / "model-providers" / "oomol" / "__init__.py"
+    ).read_text(encoding="utf-8")
+    assert 'env_vars=("OO_API_KEY",)' in provider
+    assert "base_url=_base_url()" in provider
+    assert 'api_mode=api_mode' in provider
+
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert "COPY plugins/model-providers/ /opt/hermes/plugins/model-providers/" in dockerfile
 
 
 def test_development_compose_builds_the_local_image() -> None:

@@ -54,12 +54,13 @@ internal operational code from `oomol/hermes-agent` merely because it exists.
   Never log prompts, uploaded contents, credentials, signed URLs, or sensitive
   raw responses.
 - Keep non-secret configuration in `config.yaml`. OO credentials come only from
-  runtime `OO_API_KEY` or the OO configuration volume, never image layers.
+  the required runtime `OO_API_KEY`, never image layers or persisted files.
 - Provider failures must not prevent Hermes from starting.
 
 ## Runtime And Security
 
-- Startup must not require OO authentication or network access.
+- Startup requires `OO_API_KEY`, `OO_LLM_BASE_URL`, `OO_LLM_MODEL`, and
+  `OO_LLM_API_MODE`, but it must not validate them with a network request.
 - Keep mutable state under `/data`; `$HERMES_HOME` and `OO_CONFIG_DIR` must live
   below it.
 - Seed `config.yaml` only when missing and never overwrite user changes.

@@ -5,6 +5,14 @@ terminal:
   env_passthrough:
     - OO_CONFIG_DIR
     - OO_API_KEY
+    - OO_LLM_BASE_URL
+    - OO_LLM_MODEL
+    - OO_LLM_API_MODE
+model:
+  provider: oomol
+  default: ${OO_LLM_MODEL}
+  base_url: ${OO_LLM_BASE_URL}
+  api_mode: ${OO_LLM_API_MODE}
 skills:
   external_dirs:
     - /opt/oomol-hermes-agent/oo-skills
