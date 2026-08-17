@@ -54,11 +54,15 @@ The entrypoint only creates missing directories and seeds Hermes configuration
 on first start. It does not authenticate OO, download Skills, or call a remote
 service.
 
-For non-interactive deployments, Compose passes `OO_API_KEY` directly to
-Hermes and its terminal subprocesses. OO CLI treats it as an in-memory active
-credential and does not require a persisted account. Interactive OO login
-remains available through `/data/.config/oo` when the environment override is
-not used.
+For non-interactive deployments, Compose can pass the optional `OO_API_KEY`
+directly to Hermes and its terminal subprocesses. OO CLI treats it as an
+in-memory active credential. Without the environment override, the first OO
+provider request checks local authentication, starts one bounded shared
+`oo auth login` process when needed, and returns the device-login URL to the
+chat. That process keeps polling while the user logs in and persists the result
+under `/data/.config/oo`; the user then retries the original request.
+
+No authentication check or login process runs during container startup.
 
 ## Skill Description Exception
 

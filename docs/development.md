@@ -47,7 +47,11 @@ The native linux/arm64 build and these smoke commands passed with Hermes
 `oo_gpt_image_2`, `oo_nano_banana`, `oo_seedance`, and `oo_jina` as enabled.
 Linux/amd64 remains a release acceptance check.
 
-For an authentication check using the Compose-managed `OO_API_KEY`, run:
+Provider authentication tests cover an existing login, optional device login,
+and an invalid `OO_API_KEY`. The native image check also verifies that a fresh
+logged-out container returns an official OOMOL device-login URL.
+
+To inspect authentication from the Compose-managed container, run:
 
 ```sh
 docker compose -f compose.yaml -f compose.dev.yaml run --rm hermes \

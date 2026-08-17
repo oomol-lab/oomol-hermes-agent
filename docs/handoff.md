@@ -63,6 +63,19 @@ tools were intentionally not migrated.
   persisted authentication, and image-level discovery of all four enabled OO
   provider Plugins.
 
+## Provider Authentication Update (2026-08-17)
+
+- Kept `OO_API_KEY` optional. It remains the non-interactive environment
+  override when supplied.
+- Added one shared authentication manager for all four OO providers. A provider
+  hit while logged out starts `oo auth login`, returns the device-login URL to
+  the chat, and keeps the bounded background process alive to persist the
+  completed login under `/data`.
+- Added real provider imports to the image build so discovery cannot pass while
+  a shared runtime module is missing.
+- Verified the logged-out URL flow in the final non-root image without making
+  authentication a container-startup dependency.
+
 ## Next Work, In Order
 
 1. Run the first complete linux/amd64 Docker build and fix only real integration
@@ -70,21 +83,17 @@ tools were intentionally not migrated.
 2. Automate the image-level Plugin discovery check currently run manually.
 3. Consolidate repeated OO subprocess, upload, polling, response parsing, and
    redaction code shared by provider Plugins.
-4. Add `doctor` output for missing `OO_API_KEY` or persisted login, binary, and
-   connector access states.
-5. Decide whether OO providers should be selected by default before login or
-   merely preinstalled and selectable through `hermes tools`.
-6. Add safe config migrations for existing volumes before changing seed
+4. Add `doctor` output for environment or persisted login, binary, and connector
+   access states.
+5. Add safe config migrations for existing volumes before changing seed
    defaults after the first release.
-7. Confirm and document OO CLI redistribution/license terms.
-8. Generate an SBOM and provenance attestation in the release workflow.
-9. Publish the initial image to `ghcr.io/oomol/oomol-hermes-agent`.
+6. Confirm and document OO CLI redistribution/license terms.
+7. Generate an SBOM and provenance attestation in the release workflow.
+8. Publish the initial image to `ghcr.io/oomol/oomol-hermes-agent`.
 
 ## Known Design Debt
 
 - The Provider Plugins duplicate their OO CLI client logic.
-- The seed selects OO providers even when OO is not authenticated. Hermes still
-  starts, but the first-call failure experience must be evaluated.
 - The Dockerfile and `upstream.lock.json` duplicate version defaults; tests keep
   them synchronized, but a generated BuildKit input would be cleaner.
 - The full document stack makes the single image heavy. Consider `core`,

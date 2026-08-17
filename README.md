@@ -46,11 +46,22 @@ cp .env.example .env
 chmod 600 .env
 ```
 
-Edit `.env` and set `OO_API_KEY`. This is the only OO-specific Compose
-environment variable. OO CLI reads it directly as an in-memory credential, so
-no interactive login or persisted OO account is required. Compose passes it to
-the bundled providers and Hermes terminal subprocesses. The container can start
-with the value empty, but OO-backed calls remain unavailable until it is set.
+`OO_API_KEY` is the only OO-specific Compose environment variable, and it is
+optional. When set, OO CLI reads it directly as an in-memory credential and no
+interactive login is required. When left empty, Hermes still starts normally.
+The first request that reaches an OO image, video, or search provider starts one
+shared OO device-login flow and returns its browser URL to the chat. Open the
+URL, finish login, and retry the request; OO CLI persists the completed login
+under `/data/.config/oo`.
+
+You can also start the same login flow manually:
+
+```sh
+docker compose exec hermes oo auth login
+```
+
+Compose passes `OO_API_KEY` to the bundled providers and Hermes terminal
+subprocesses when it is present.
 
 The image has not been published to GHCR yet. Until the first release, build and
 start it from this checkout with the development override:
