@@ -102,8 +102,9 @@ Never raise the global default.
 - Bound timeouts and redact subprocess errors before returning them.
 - Do not log prompts, uploaded file contents, credentials, signed URLs, or raw
   connector responses that may contain them.
-- Configuration that is not secret belongs in `config.yaml`; credentials belong
-  in the OO configuration volume.
+- Configuration that is not secret belongs in `config.yaml`. OO credentials
+  come from the runtime `OO_API_KEY` environment variable or the OO
+  configuration volume; never bake them into image layers.
 - Provider failures must not prevent Hermes from starting.
 
 Shared OO subprocess, upload, polling, and redaction behavior should move into

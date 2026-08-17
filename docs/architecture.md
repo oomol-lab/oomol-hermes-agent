@@ -41,7 +41,7 @@ All mutable state is below `/data`:
 | Path | Purpose |
 | --- | --- |
 | `/data/.hermes` | Hermes configuration, sessions, user Skills, and state |
-| `/data/.config/oo` | OO authentication and configuration |
+| `/data/.config/oo` | Optional persisted OO authentication and configuration |
 | `/data/workspace` | Default agent workspace |
 
 Image-owned code, Plugins, and Skills remain below `/opt` and are read-only at
@@ -50,6 +50,12 @@ runtime.
 The entrypoint only creates missing directories and seeds Hermes configuration
 on first start. It does not authenticate OO, download Skills, or call a remote
 service.
+
+For non-interactive deployments, Compose passes `OO_API_KEY` directly to
+Hermes and its terminal subprocesses. OO CLI treats it as an in-memory active
+credential and does not require a persisted account. Interactive OO login
+remains available through `/data/.config/oo` when the environment override is
+not used.
 
 ## Skill Description Exception
 

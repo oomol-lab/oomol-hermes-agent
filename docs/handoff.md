@@ -52,8 +52,8 @@ tools were intentionally not migrated.
 2. Add an image-level Plugin discovery smoke test, not only compile checks.
 3. Consolidate repeated OO subprocess, upload, polling, response parsing, and
    redaction code shared by provider Plugins.
-4. Define the public OO authentication UX and add `doctor` output for missing
-   binary, login, and connector access states.
+4. Add `doctor` output for missing `OO_API_KEY` or persisted login, binary, and
+   connector access states.
 5. Decide whether OO providers should be selected by default before login or
    merely preinstalled and selectable through `hermes tools`.
 6. Add safe config migrations for existing volumes before changing seed
@@ -80,7 +80,8 @@ tools were intentionally not migrated.
 - Rebuilding with identical inputs resolves the same Hermes and OO versions.
 - Container startup performs no network access.
 - Hermes starts without OO authentication.
-- OO authentication persists in `/data` and no credential enters image layers.
+- OO authentication works through runtime `OO_API_KEY` or persisted `/data`
+  state, and no credential enters image layers.
 - All four OO framework Skills appear with their full routing descriptions.
 - Ordinary Skills retain the 60-character default.
 - Curated Skills and all four Provider Plugins are discoverable.

@@ -68,13 +68,7 @@ docker run --rm -it \
   oomol-hermes-agent:dev
 ```
 
-Authenticate OO using the same volume:
-
-```sh
-make auth
-```
-
-Or without Make:
+Authenticate OO using the same volume when using the low-level Docker flow:
 
 ```sh
 docker run --rm -it \
@@ -84,12 +78,6 @@ docker run --rm -it \
 ```
 
 Inspect authentication:
-
-```sh
-make auth-status
-```
-
-Or without Make:
 
 ```sh
 docker run --rm \
@@ -117,16 +105,61 @@ docker run --rm -it \
 The first start seeds `/data/.hermes/config.yaml`. Later starts never overwrite
 that file.
 
+## Docker Compose
+
+The public installation path uses `compose.yaml`, a prebuilt image, and a named
+volume for all state. The gateway binds to `127.0.0.1:8766` by default.
+`OO_API_KEY` is the only OO-specific Compose environment variable.
+
+The image has not been published to GHCR yet. Until the first release, use the
+development override to build it from this checkout:
+
+```sh
+cp .env.example .env
+docker compose -f compose.yaml -f compose.dev.yaml build
+docker compose -f compose.yaml -f compose.dev.yaml up -d
+docker compose -f compose.yaml -f compose.dev.yaml logs -f hermes
+```
+
+The same development flow is available through shorter Make targets:
+
+```sh
+make compose-build
+make compose-up
+make compose-logs
+```
+
+After the image is published, the end-user installation flow will require only
+the released Compose files, not a source checkout or the development override:
+
+```sh
+cp .env.example .env
+docker compose pull
+docker compose up -d
+docker compose logs -f hermes
+```
+
+Use `docker compose run --rm hermes hermes` for a one-off interactive Hermes
+CLI. `docker compose down` stops the gateway but preserves `hermes-data`;
+`docker compose down -v` also deletes configuration and workspace data.
+
+OO CLI reads `OO_API_KEY` directly and treats it as the active in-memory
+credential, so no interactive login or persisted OO account is required. The
+variable is passed both to the bundled provider processes and to terminal
+commands launched by Hermes. Keep `.env` private: it is ignored by Git and
+excluded from the Docker build context, but Docker still exposes container
+environment variables to users with daemon access.
+
 ## Development
 
 ```sh
-make sync
-make test
-make smoke
+make compose-build
+make compose-up
+make compose-logs
 ```
 
-`make test` runs repository tests without building the image. `make smoke`
-checks the OO and Hermes CLIs in an image previously built by `make build`.
+These targets use `compose.yaml` with `compose.dev.yaml`, so Hermes runs from a
+locally built development image rather than directly on the host.
 
 Read [AGENTS.md](AGENTS.md) before changing the repository. Architecture,
 development, upstream maintenance, and handoff details live under `docs/`.

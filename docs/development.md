@@ -37,8 +37,9 @@ docker run --rm oomol-hermes-agent:dev hermes --help
 The initial native linux/arm64 build and both smoke commands passed on
 2026-08-17. Linux/amd64 remains a release acceptance check.
 
-For authentication and persistent-state checks, use the volume commands in the
-root README. Never place credentials in build arguments or committed files.
+For authentication checks, use the Compose `OO_API_KEY` flow or the persistent
+volume commands in the root README. Never place credentials in build arguments,
+image layers, or committed files.
 
 ## Editing Skills
 
