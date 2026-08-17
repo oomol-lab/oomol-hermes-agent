@@ -34,8 +34,9 @@ docker run --rm oomol-hermes-agent:dev oo --version
 docker run --rm oomol-hermes-agent:dev hermes --help
 ```
 
-The initial native linux/arm64 build and both smoke commands passed on
-2026-08-17. Linux/amd64 remains a release acceptance check.
+The native linux/arm64 build and both smoke commands passed with Hermes
+`0.20.2` and OO CLI `1.7.4` on 2026-08-17. Linux/amd64 remains a release
+acceptance check.
 
 For authentication checks, use the Compose `OO_API_KEY` flow or the persistent
 volume commands in the root README. Never place credentials in build arguments,

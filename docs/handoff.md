@@ -45,11 +45,28 @@ Leina connection guidance, Platform Bindings, managed authentication writes,
 Connector Skill webhooks, message-platform patches, and internal operations
 tools were intentionally not migrated.
 
+## Upstream Compatibility Update (2026-08-17)
+
+- Updated Hermes from `0.19.0` to `0.20.2` at immutable commit
+  `df4b65147d7ddd74dd449f9067aabbca5aef0ec7`.
+- Updated OO CLI from `1.7.0` to `1.7.4`; verified the published linux/amd64
+  and linux/arm64 artifacts against the SHA-256 values in
+  `upstream.lock.json`.
+- Reviewed the Hermes Skill parser and image, video, and web provider ABCs.
+  The per-Skill description patch remains necessary and applies cleanly.
+- Fixed the non-root runtime for the upstream-pinned Python 3.11 interpreter
+  by installing uv-managed Python below `/opt/uv-python` instead of `/root`.
+- Completed a native linux/arm64 image build. The final image reports Hermes
+  `0.20.2`, OO CLI `1.7.4`, Python `3.11.15`, and UID `10000`.
+- Verified first-start config seeding, direct `OO_API_KEY` recognition without
+  persisted authentication, and image-level discovery of all four enabled OO
+  provider Plugins.
+
 ## Next Work, In Order
 
 1. Run the first complete linux/amd64 Docker build and fix only real integration
    failures found against the pinned source.
-2. Add an image-level Plugin discovery smoke test, not only compile checks.
+2. Automate the image-level Plugin discovery check currently run manually.
 3. Consolidate repeated OO subprocess, upload, polling, response parsing, and
    redaction code shared by provider Plugins.
 4. Add `doctor` output for missing `OO_API_KEY` or persisted login, binary, and
