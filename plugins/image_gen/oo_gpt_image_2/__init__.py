@@ -21,6 +21,7 @@ from agent.image_gen_provider import (
     save_url_image,
     success_response,
 )
+from oomol_hermes_oo import require_oo_authentication
 
 
 PROVIDER_NAME = "oo_gpt_image_2"
@@ -333,6 +334,18 @@ class OOGPTImage2Provider(ImageGenProvider):
         quality = str(kwargs.get("quality") or os.environ.get("OO_GPT_IMAGE_2_QUALITY") or DEFAULT_QUALITY).strip()
         size = str(kwargs.get("size") or os.environ.get("OO_GPT_IMAGE_2_SIZE") or _ASPECT_TO_SIZE[aspect]).strip()
         n = int(kwargs.get("n") or os.environ.get("OO_GPT_IMAGE_2_N") or DEFAULT_N)
+
+        try:
+            require_oo_authentication()
+        except RuntimeError as exc:
+            return error_response(
+                error=str(exc),
+                error_type=type(exc).__name__,
+                provider=PROVIDER_NAME,
+                model=model,
+                prompt=prompt,
+                aspect_ratio=aspect,
+            )
 
         refs: list[str] = []
         if isinstance(image_url, str) and image_url.strip():

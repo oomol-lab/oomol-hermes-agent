@@ -14,6 +14,7 @@ import subprocess
 from typing import Any, Dict
 
 from agent.web_search_provider import WebSearchProvider
+from oomol_hermes_oo import require_oo_authentication
 
 
 _SERVICE = "fusion-api"
@@ -109,6 +110,7 @@ class OOJinaWebSearchProvider(WebSearchProvider):
         except (TypeError, ValueError):
             bounded_limit = 5
         try:
+            require_oo_authentication()
             return {
                 "success": True,
                 "data": {"web": _normalize_results(_run_search(query), bounded_limit)},

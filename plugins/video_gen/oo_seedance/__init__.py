@@ -20,6 +20,7 @@ from agent.video_gen_provider import (
     success_response,
 )
 from agent.image_gen_provider import save_url_image
+from oomol_hermes_oo import require_oo_authentication
 
 
 PROVIDER_NAME = "oo_seedance"
@@ -335,6 +336,18 @@ class OOSeedanceVideoGenProvider(VideoGenProvider):
             kwargs.get("return_last_frame"),
             _coerce_bool(os.environ.get("OO_SEEDANCE_RETURN_LAST_FRAME"), DEFAULT_RETURN_LAST_FRAME),
         )
+
+        try:
+            require_oo_authentication()
+        except RuntimeError as exc:
+            return error_response(
+                error=str(exc),
+                error_type=type(exc).__name__,
+                provider=PROVIDER_NAME,
+                model=resolved_model,
+                prompt=prompt,
+                aspect_ratio=ratio,
+            )
 
         refs: list[dict[str, str]] = []
         if isinstance(image_url, str) and image_url.strip():

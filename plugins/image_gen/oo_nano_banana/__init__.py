@@ -20,6 +20,7 @@ from agent.image_gen_provider import (
     save_url_image,
     success_response,
 )
+from oomol_hermes_oo import require_oo_authentication
 
 
 PROVIDER_NAME = "oo_nano_banana"
@@ -320,6 +321,18 @@ class OONanoBananaImageGenProvider(ImageGenProvider):
         service = os.environ.get("OO_NANO_BANANA_SERVICE") or DEFAULT_SERVICE
         output_format = os.environ.get("OO_NANO_BANANA_OUTPUT_FORMAT") or DEFAULT_OUTPUT_FORMAT
         resolution = os.environ.get("OO_NANO_BANANA_RESOLUTION") or DEFAULT_RESOLUTION
+
+        try:
+            require_oo_authentication()
+        except RuntimeError as exc:
+            return error_response(
+                error=str(exc),
+                error_type=type(exc).__name__,
+                provider=PROVIDER_NAME,
+                model=model,
+                prompt=prompt,
+                aspect_ratio=aspect,
+            )
 
         refs: list[str] = []
         if isinstance(image_url, str) and image_url.strip():
