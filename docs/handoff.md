@@ -54,8 +54,9 @@ tools were intentionally not migrated.
   `upstream.lock.json`.
 - Reviewed the Hermes Skill parser and image, video, and web provider ABCs.
   The per-Skill description patch remains necessary and applies cleanly.
-- Fixed the non-root runtime for the upstream-pinned Python 3.11 interpreter
-  by installing uv-managed Python below `/opt/uv-python` instead of `/root`.
+- Aligned the build and repository-test images with the upstream-selected
+  Python 3.11 interpreter so Hermes can reuse the accessible base interpreter
+  instead of installing a second uv-managed interpreter.
 - Completed a native linux/arm64 image build. The final image reports Hermes
   `0.20.2`, OO CLI `1.7.4`, Python `3.11.15`, and UID `10000`.
 - Verified first-start config seeding, direct `OO_API_KEY` recognition without

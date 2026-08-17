@@ -1,4 +1,4 @@
-ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.11.6-python3.13-trixie
+ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.11.6-python3.11-trixie
 
 FROM ${UV_IMAGE}
 
@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-dejavu-core fonts-liberation fonts-noto-cjk fonts-wqy-zenhei \
     libreoffice-calc libreoffice-impress libreoffice-writer pandoc \
     poppler-data poppler-utils qpdf \
-    gcc g++ libffi-dev make python3-dev \
+    gcc g++ libffi-dev make \
     && rm -rf /var/lib/apt/lists/*
 
 RUN node --version
@@ -54,7 +54,7 @@ COPY patches/0001-skill-description-opt-in.patch /tmp/hermes-patches/
 RUN git apply --check /tmp/hermes-patches/0001-skill-description-opt-in.patch \
     && git apply /tmp/hermes-patches/0001-skill-description-opt-in.patch
 
-RUN UV_PYTHON_INSTALL_DIR=/opt/uv-python uv sync --frozen --extra messaging \
+RUN uv sync --frozen --extra messaging \
     && test -x /opt/hermes/.venv/bin/python
 
 RUN set -eu; \
