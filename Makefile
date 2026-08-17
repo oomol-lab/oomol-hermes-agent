@@ -10,10 +10,12 @@ DEV_COMPOSE_FILES := -f compose.yaml -f compose.dev.yaml
 
 .DEFAULT_GOAL := help
 
-.PHONY: help build smoke volume run run-clean gateway compose-config compose-build compose-up compose-down compose-logs compose-cli
+.PHONY: help test check build smoke volume run run-clean gateway compose-config compose-build compose-up compose-down compose-logs compose-cli
 
 help:
 	@echo "OOMOL Hermes Agent development commands:"
+	@echo "  make test         Run repository tests inside Docker"
+	@echo "  make check        Run tests and whitespace checks"
 	@echo "  make build        Build the local Docker image"
 	@echo "  make run          Start Hermes with persistent data"
 	@echo "  make run-clean    Start Hermes with fresh, disposable data"
@@ -25,6 +27,15 @@ help:
 	@echo "  make compose-cli  Open a one-off Hermes CLI"
 	@echo ""
 	@echo "Overrides: IMAGE, DATA_VOLUME, GATEWAY_PORT, DOCKER, COMMAND, COMPOSE"
+
+test:
+	$(DOCKER) build --progress=plain \
+		--file Dockerfile.test \
+		--target repository-tests \
+		.
+
+check: test
+	git diff --check
 
 build:
 	$(DOCKER) build --progress=plain -t "$(IMAGE)" .
