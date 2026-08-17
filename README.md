@@ -61,7 +61,7 @@ docker compose up -d
 docker compose logs -f hermes
 ```
 
-The Hermes gateway listens on `127.0.0.1:8766` by default.
+The messaging gateway does not expose a network port.
 
 ## Bundled Skills
 
@@ -84,14 +84,15 @@ manage Skills through OO.
 ## Configuration and Data
 
 Additional settings are available in [.env.example](.env.example), including
-the image, gateway address, port, and timezone.
+the image and OOMOL model configuration.
 
 Hermes configuration, sessions, OO CLI state, and workspace files are stored in
 the Compose-managed `hermes-data` volume. `docker compose down` preserves the
-volume; `docker compose down -v` deletes it.
+volume; `docker compose down -v` deletes it. On startup, the runtime API key is
+also saved there as oo-cli login state so bundled OO Skills work from messaging
+sessions.
 
-Keep `.env` private. The gateway binds to localhost by default; only expose it
-to other networks when an appropriate security layer is in place.
+Keep `.env` private because it contains the OOMOL API key.
 
 ## About This Project
 
@@ -104,7 +105,11 @@ than an independent Hermes fork.
 ```sh
 make test
 make build
+make compose-up
 ```
+
+Development Compose runs only the messaging gateway and does not publish a host
+port. Use a configured messaging platform such as Telegram for testing.
 
 See [docs/development.md](docs/development.md) and
 [docs/architecture.md](docs/architecture.md) for details.

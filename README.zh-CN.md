@@ -58,7 +58,7 @@ docker compose up -d
 docker compose logs -f hermes
 ```
 
-Hermes Gateway 默认监听 `127.0.0.1:8766`。
+消息 Gateway 本身不暴露网络端口。
 
 ## 内置 Skills
 
@@ -79,14 +79,14 @@ Hermes Gateway 默认监听 `127.0.0.1:8766`。
 
 ## 配置与数据
 
-更多配置见 [.env.example](.env.example)，包括镜像、Gateway 地址、端口和时区。
+更多配置见 [.env.example](.env.example)，包括镜像和 OOMOL 模型配置。
 
 Hermes 配置、会话、OO CLI 状态和工作目录文件都保存在 Docker Compose 管理的
 `hermes-data` Volume 中。`docker compose down` 会保留数据，
-`docker compose down -v` 会删除 Volume。
+`docker compose down -v` 会删除 Volume。启动时还会把运行时 API Key 保存成
+oo-cli 登录状态，让消息会话中的内置 OO Skills 可以正常使用。
 
-请勿提交包含真实凭据的 `.env`。Gateway 默认只监听本机地址，如需对外开放，
-请先配置适当的安全措施。
+请勿提交包含真实凭据的 `.env`，其中包含 OOMOL API Key。
 
 ## 关于本项目
 
@@ -98,7 +98,11 @@ Plugins 组装为 Docker 发行版，不是 Hermes Agent 的独立 Fork。
 ```sh
 make test
 make build
+make compose-up
 ```
+
+开发 Compose 只运行消息 Gateway，不对宿主机开放端口。测试时可使用已经配置的
+Telegram 等消息平台。
 
 详细说明见 [docs/development.md](docs/development.md) 和
 [docs/architecture.md](docs/architecture.md)。

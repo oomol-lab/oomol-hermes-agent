@@ -51,10 +51,28 @@ case "${base_authority}" in
 esac
 
 mkdir -p "${HERMES_HOME}" "${OO_CONFIG_DIR}" /data/workspace
+
+# Intentional deployment tradeoff: terminal processes cannot receive
+# OO_API_KEY, so publish a saved oo-cli account from a private staging dir.
+# A failed refresh removes the old account rather than using stale credentials.
+auth_staging_dir="$(mktemp -d "${OO_CONFIG_DIR}/.auth-login.XXXXXX")"
+if OO_CONFIG_DIR="${auth_staging_dir}" \
+    timeout 30 oo auth login --api-key "${OO_API_KEY}" >/dev/null 2>&1 \
+    && [ -s "${auth_staging_dir}/auth.toml" ]; then
+    chmod 0600 "${auth_staging_dir}/auth.toml"
+    mv -f "${auth_staging_dir}/auth.toml" "${OO_CONFIG_DIR}/auth.toml"
+else
+    rm -f "${OO_CONFIG_DIR}/auth.toml"
+    echo "warning: could not persist oo-cli authentication; continuing without terminal OO access" >&2
+fi
+rm -rf "${auth_staging_dir}"
+
 config_path="${HERMES_HOME}/config.yaml"
 if [ ! -e "${config_path}" ]; then
     cp /opt/oomol-hermes-agent/config/config.seed.yaml "${config_path}"
 fi
+/opt/hermes/.venv/bin/python \
+    /opt/oomol-hermes-agent/scripts/materialize-config-env.py "${config_path}"
 
 if [ "$#" -eq 0 ]; then
     set -- hermes

@@ -54,18 +54,41 @@ The native linux/arm64 build and these smoke commands passed with Hermes
 `oo_gpt_image_2`, `oo_nano_banana`, `oo_seedance`, and `oo_jina` as enabled.
 Linux/amd64 remains a release acceptance check.
 
+## Development Compose
+
+Start the development gateway:
+
+```sh
+make compose-up
+```
+
+Compose runs the messaging gateway from the locally built image and keeps its
+state in the Compose-managed `/data` volume. It does not start the Hermes App
+backend or publish a host port; use a configured messaging platform such as
+Telegram for development testing.
+
+At startup, the entrypoint uses `OO_API_KEY` to persist an oo-cli login under
+`/data/.config/oo`. The operation has a 30-second timeout and is best-effort, so
+an authentication or network failure warns without stopping the gateway. The
+environment variable remains available to the main Hermes process for its
+OOMOL model and provider Plugins, while terminal processes use the saved login.
+Authentication is staged before replacing the active account; a failed refresh
+removes any prior account instead of allowing terminal work to use stale
+credentials.
+
 Runtime tests cover required environment validation, base-URL and API-mode
 validation, and invalid `OO_API_KEY` behavior in the connector providers.
 
-To inspect authentication from the Compose-managed container, run:
+To verify the saved authentication without the environment override, run:
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml run --rm hermes \
-  oo auth status --json
+docker compose -f compose.yaml -f compose.dev.yaml exec hermes \
+  env -u OO_API_KEY oo auth status --json
 ```
 
 Never place credentials in build arguments, image layers, command literals, or
-committed files.
+committed files. The runtime API key is intentionally persisted as oo-cli state
+inside the private `/data` volume.
 
 ## Editing Skills
 

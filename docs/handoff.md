@@ -59,9 +59,10 @@ tools were intentionally not migrated.
   instead of installing a second uv-managed interpreter.
 - Completed a native linux/arm64 image build. The final image reports Hermes
   `0.20.2`, OO CLI `1.7.4`, Python `3.11.15`, and UID `10000`.
-- Verified first-start config seeding, direct `OO_API_KEY` recognition without
-  persisted authentication, and image-level discovery of all four enabled OO
-  provider Plugins.
+- Verified first-start config seeding, direct `OO_API_KEY` recognition, and
+  image-level discovery of all four enabled OO provider Plugins. The later
+  terminal-authentication update supersedes the original non-persistence
+  behavior.
 
 ## Provider Authentication Update (2026-08-17)
 
@@ -89,8 +90,26 @@ tools were intentionally not migrated.
   or remote health check.
 - Seeded the normal base URL, `deepseek-v4-flash`, and `codex_responses` as
   recommendations in `.env.example`; none is a hidden runtime default.
-- Retained first-start-only Hermes config seeding. Pre-existing volumes need a
-  manual model configuration update or recreation.
+- Retained first-start-only Hermes config seeding. The entrypoint materializes
+  the three non-secret model settings and safely upgrades only their exact
+  legacy placeholders in pre-existing volumes without overwriting customized
+  model values.
+
+## OO CLI Terminal Authentication Update (2026-08-17)
+
+- Added a bounded, best-effort `oo auth login --api-key` call during startup.
+  It persists a saved account under `/data/.config/oo`, allowing OO Skills to
+  work inside Hermes terminal processes after provider environment credentials
+  are scrubbed.
+- Kept `OO_API_KEY` in the main process for the OOMOL model and provider
+  Plugins. Authentication is staged and atomically replaced; login failure
+  removes the previous saved account, warns, and does not prevent startup.
+- Removed OOMOL credentials and model settings from terminal passthrough. A
+  narrow migration cleans the exact previous seed block in existing volumes
+  while preserving user-added variables.
+- Added non-secret ownership state for materialized model settings so later
+  environment changes update distribution-managed values without overwriting
+  user customizations.
 
 ## Next Work, In Order
 
@@ -121,10 +140,11 @@ tools were intentionally not migrated.
 
 - Both supported architectures build from a clean checkout.
 - Rebuilding with identical inputs resolves the same Hermes and OO versions.
-- Container startup performs no network access.
+- Container startup tolerates unavailable network access and authentication
+  failures.
 - Hermes fails clearly when required OOMOL runtime variables are absent.
-- OOMOL authentication uses runtime `OO_API_KEY`, and no credential enters
-  image layers or persisted configuration.
+- OOMOL authentication starts from runtime `OO_API_KEY`; oo-cli persists the
+  corresponding login only in runtime `/data`, never in image layers.
 - All four OO framework Skills appear with their full routing descriptions.
 - Ordinary Skills retain the 60-character default.
 - Curated Skills, the OOMOL model provider, and all four connector-backed

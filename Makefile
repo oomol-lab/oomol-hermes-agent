@@ -2,7 +2,6 @@ SHELL := /bin/sh
 
 IMAGE ?= oomol-hermes-agent:dev
 DATA_VOLUME ?= oomol-hermes-agent-data
-GATEWAY_PORT ?= 8766
 DOCKER ?= docker
 COMMAND ?=
 COMPOSE ?= $(DOCKER) compose
@@ -11,7 +10,7 @@ RUNTIME_ENV := -e OO_API_KEY -e OO_LLM_BASE_URL -e OO_LLM_MODEL -e OO_LLM_API_MO
 
 .DEFAULT_GOAL := help
 
-.PHONY: help test check build smoke volume run run-clean gateway compose-config compose-build compose-up compose-down compose-logs compose-cli
+.PHONY: help test check build smoke volume run run-clean gateway compose-config compose-build compose-up compose-down compose-reset compose-logs compose-cli
 
 help:
 	@echo "OOMOL Hermes Agent development commands:"
@@ -24,10 +23,11 @@ help:
 	@echo "  make gateway      Start the Hermes gateway"
 	@echo "  make compose-up   Build and start the development gateway"
 	@echo "  make compose-down Stop the development gateway"
+	@echo "  make compose-reset Stop gateway and delete persistent development data"
 	@echo "  make compose-logs Follow development gateway logs"
 	@echo "  make compose-cli  Open a one-off Hermes CLI"
 	@echo ""
-	@echo "Overrides: IMAGE, DATA_VOLUME, GATEWAY_PORT, DOCKER, COMMAND, COMPOSE"
+	@echo "Overrides: IMAGE, DATA_VOLUME, DOCKER, COMMAND, COMPOSE"
 
 test:
 	$(DOCKER) build --progress=plain \
@@ -60,7 +60,6 @@ run-clean:
 gateway: volume
 	$(DOCKER) run --rm -it \
 		$(RUNTIME_ENV) \
-		-p "$(GATEWAY_PORT):8766" \
 		-v "$(DATA_VOLUME):/data" \
 		"$(IMAGE)" hermes gateway run
 
@@ -75,6 +74,9 @@ compose-up:
 
 compose-down:
 	$(COMPOSE) $(DEV_COMPOSE_FILES) down
+
+compose-reset:
+	$(COMPOSE) $(DEV_COMPOSE_FILES) down -v --remove-orphans
 
 compose-logs:
 	$(COMPOSE) $(DEV_COMPOSE_FILES) logs -f hermes

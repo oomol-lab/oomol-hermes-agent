@@ -6,13 +6,10 @@ services:
     restart: unless-stopped
     init: true
     environment:
-      TZ: ${TZ:-UTC}
       OO_API_KEY: ${OO_API_KEY:?OO_API_KEY is required}
       OO_LLM_BASE_URL: ${OO_LLM_BASE_URL:?OO_LLM_BASE_URL is required}
       OO_LLM_MODEL: ${OO_LLM_MODEL:?OO_LLM_MODEL is required}
       OO_LLM_API_MODE: ${OO_LLM_API_MODE:?OO_LLM_API_MODE is required}
-    ports:
-      - "${HERMES_BIND_ADDRESS:-127.0.0.1}:${HERMES_PORT:-8766}:8766"
     volumes:
       - hermes-data:/data
     command: ["hermes", "gateway", "run"]

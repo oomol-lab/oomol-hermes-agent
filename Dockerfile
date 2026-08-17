@@ -134,7 +134,5 @@ ENV HOME=/data \
 USER hermes
 WORKDIR /data/workspace
 VOLUME ["/data"]
-EXPOSE 8766
-
 ENTRYPOINT ["/opt/oomol-hermes-agent/scripts/entrypoint.sh"]
 CMD ["hermes"]

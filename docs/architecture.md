@@ -41,7 +41,7 @@ All mutable state is below `/data`:
 | Path | Purpose |
 | --- | --- |
 | `/data/.hermes` | Hermes configuration, sessions, user Skills, and state |
-| `/data/.config/oo` | Optional OO CLI configuration and state; the distribution does not persist its runtime LLM key here |
+| `/data/.config/oo` | OO CLI configuration and the login persisted from the runtime API key |
 | `/data/workspace` | Default agent workspace |
 
 Image-owned code, Plugins, and Skills remain below `/opt` and are read-only at
@@ -53,12 +53,17 @@ to the non-root `hermes` user.
 The entrypoint requires `OO_API_KEY`, `OO_LLM_BASE_URL`, `OO_LLM_MODEL`, and
 `OO_LLM_API_MODE`. It validates the API mode against a small allowlist and
 checks that the declared base URL is an HTTPS `/v1` endpoint before starting
-Hermes. It does not perform a remote health check, persist the API key, download
-Skills, or call a remote service.
+Hermes. It then gives `oo auth login` up to 30 seconds to persist an OO CLI
+login below `/data`; failure emits a warning but never prevents Hermes from
+starting. Authentication is staged and atomically replaced; a failed refresh
+removes the previous saved account so terminal work cannot silently use a stale
+identity. It does not download Skills or health-check the model endpoint.
 
-`OO_API_KEY` is the sole credential source for the main language model and the
-other OO-backed providers. `OO_LLM_BASE_URL` declares the fixed OOMOL endpoint,
-`OO_LLM_MODEL` selects the model, and `OO_LLM_API_MODE` selects either
+`OO_API_KEY` remains the runtime credential source for the main language model
+and the other OO-backed providers. Its persisted OO CLI login allows terminal
+processes, where Hermes deliberately strips provider environment credentials,
+to use the bundled OO Skills. `OO_LLM_BASE_URL` declares the fixed OOMOL
+endpoint, `OO_LLM_MODEL` selects the model, and `OO_LLM_API_MODE` selects either
 `codex_responses` or `chat_completions`. Recommended values are declared in
 `.env.example`; the runtime has no hidden endpoint, model, or API-mode fallback.
 
@@ -88,9 +93,15 @@ Hermes terminal.
 ## Configuration
 
 `config/config.seed.yaml` is copied only when `$HERMES_HOME/config.yaml` does
-not exist. It selects the OOMOL language-model provider through environment
-placeholders, enables the other bundled providers, and exposes their existing
-Hermes toolsets. Users retain full control after first start.
+not exist. Before Hermes starts, the entrypoint materializes its three
+non-secret OOMOL model placeholders from the validated runtime environment and
+records the values it owns in adjacent non-secret state. Later environment
+changes refresh only those managed values; a field stops being managed after a
+user customizes it. The same narrow migration removes the obsolete OOMOL
+variables from the terminal passthrough list; only `OO_CONFIG_DIR` is needed
+because oo-cli uses its persisted login. The seed enables the other bundled
+providers and exposes their existing Hermes toolsets. Users retain full control
+after first start.
 
 Future configuration migrations must merge only missing distribution-owned
 keys and must never replace user model, platform, Skill, or provider choices.

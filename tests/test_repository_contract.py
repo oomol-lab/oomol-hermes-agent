@@ -117,6 +117,7 @@ def test_public_compose_uses_published_image_and_persistent_data() -> None:
     assert "build" not in service
     assert service["command"] == ["hermes", "gateway", "run"]
     assert "hermes-data:/data" in service["volumes"]
+    assert "ports" not in service
     assert "hermes-data" in compose["volumes"]
     assert service["environment"]["OO_API_KEY"] == (
         "${OO_API_KEY:?OO_API_KEY is required}"
@@ -130,13 +131,14 @@ def test_public_compose_uses_published_image_and_persistent_data() -> None:
     assert service["environment"]["OO_LLM_API_MODE"] == (
         "${OO_LLM_API_MODE:?OO_LLM_API_MODE is required}"
     )
+    assert "TZ" not in service["environment"]
     assert "oo-auth" not in compose["services"]
 
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    assert "\nEXPOSE " not in dockerfile
+
     seed = yaml.safe_load((ROOT / "config/config.seed.yaml").read_text())
-    assert "OO_API_KEY" in seed["terminal"]["env_passthrough"]
-    assert "OO_LLM_BASE_URL" in seed["terminal"]["env_passthrough"]
-    assert "OO_LLM_MODEL" in seed["terminal"]["env_passthrough"]
-    assert "OO_LLM_API_MODE" in seed["terminal"]["env_passthrough"]
+    assert seed["terminal"]["env_passthrough"] == ["OO_CONFIG_DIR"]
     assert seed["model"] == {
         "provider": "oomol",
         "default": "${OO_LLM_MODEL}",
@@ -164,6 +166,12 @@ def test_oo_llm_runtime_contract_is_explicit_and_has_no_code_defaults() -> None:
     assert "https://*/v1|https://*/v1/" in entrypoint
     assert "must contain a safe hostname" in entrypoint
     assert "oo llm config" not in entrypoint
+    assert 'OO_CONFIG_DIR="${auth_staging_dir}"' in entrypoint
+    assert 'timeout 30 oo auth login --api-key "${OO_API_KEY}"' in entrypoint
+    assert 'mv -f "${auth_staging_dir}/auth.toml" "${OO_CONFIG_DIR}/auth.toml"' in entrypoint
+    assert 'rm -f "${OO_CONFIG_DIR}/auth.toml"' in entrypoint
+    assert "continuing without terminal OO access" in entrypoint
+    assert "materialize-config-env.py" in entrypoint
 
     provider = (
         ROOT / "plugins" / "model-providers" / "oomol" / "__init__.py"
@@ -178,15 +186,24 @@ def test_oo_llm_runtime_contract_is_explicit_and_has_no_code_defaults() -> None:
 
 def test_development_compose_builds_the_local_image() -> None:
     compose = yaml.safe_load((ROOT / "compose.dev.yaml").read_text())
+    assert set(compose["services"]) == {"hermes"}
     service = compose["services"]["hermes"]
     assert service["image"] == "oomol-hermes-agent:dev"
     assert service["build"]["context"] == "."
+    assert "healthcheck" not in service
 
 
 def test_makefile_does_not_manage_oo_authentication() -> None:
     makefile = (ROOT / "Makefile").read_text()
     assert "oo auth" not in makefile
     assert "compose-auth" not in makefile
+
+
+def test_compose_reset_removes_persistent_development_data() -> None:
+    makefile = (ROOT / "Makefile").read_text()
+    assert "compose-reset:" in makefile
+    assert "$(COMPOSE) $(DEV_COMPOSE_FILES) down -v --remove-orphans" in makefile
+    assert "delete persistent development data" in makefile
 
 
 def test_scripts_compile() -> None:
