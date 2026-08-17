@@ -1,24 +1,4 @@
 ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.11.6-python3.13-trixie
-ARG SQLITE_AUTOCONF_VERSION=3530400
-ARG SQLITE_SHA256=0e9483900e92cd5de8fd48d16bf9200145a61f7fd5be542a5ac81d8a9516eb9c
-
-FROM ${UV_IMAGE} AS sqlite-builder
-ARG SQLITE_AUTOCONF_VERSION
-ARG SQLITE_SHA256
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl gcc libc6-dev make \
-    && rm -rf /var/lib/apt/lists/*
-RUN curl -fsSL --retry 3 \
-        "https://www.sqlite.org/2026/sqlite-autoconf-${SQLITE_AUTOCONF_VERSION}.tar.gz" \
-        -o /tmp/sqlite.tar.gz \
-    && echo "${SQLITE_SHA256}  /tmp/sqlite.tar.gz" | sha256sum -c - \
-    && tar -xzf /tmp/sqlite.tar.gz -C /tmp \
-    && cd "/tmp/sqlite-autoconf-${SQLITE_AUTOCONF_VERSION}" \
-    && CFLAGS="-O2 -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_FTS3_TOKENIZER -DSQLITE_ENABLE_STMTVTAB -DSQLITE_ENABLE_UNLOCK_NOTIFY -DSQLITE_SECURE_DELETE -DSQLITE_SOUNDEX -DSQLITE_LIKE_DOESNT_MATCH_BLOBS -DSQLITE_MAX_VARIABLE_NUMBER=250000" \
-        ./configure --prefix=/usr/local --disable-static --disable-static-shell \
-            --disable-readline --all --update-limit \
-    && make -j"$(nproc)" \
-    && make install
 
 FROM ${UV_IMAGE}
 
@@ -50,21 +30,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-data poppler-utils qpdf \
     gcc g++ libffi-dev make python3-dev \
     && rm -rf /var/lib/apt/lists/*
-
-COPY --from=sqlite-builder /usr/local/ /usr/local/
-ENV LD_LIBRARY_PATH=/usr/local/lib
-RUN ldconfig && python - <<'PY'
-import sqlite3
-
-assert sqlite3.sqlite_version_info == (3, 53, 4), sqlite3.sqlite_version
-connection = sqlite3.connect(":memory:")
-options = {row[0] for row in connection.execute("PRAGMA compile_options")}
-assert {"ENABLE_FTS5", "ENABLE_RTREE", "ENABLE_SESSION"} <= options, options
-assert connection.execute("SELECT json_valid('{}'), sqrt(4)").fetchone() == (1, 2.0)
-connection.execute("CREATE VIRTUAL TABLE temp.search_probe USING fts5(content)")
-connection.execute("CREATE VIRTUAL TABLE temp.spatial_probe USING rtree(id, min_x, max_x)")
-connection.close()
-PY
 
 RUN node --version
 
