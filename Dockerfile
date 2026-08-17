@@ -23,11 +23,11 @@ RUN curl -fsSL --retry 3 \
 FROM ${UV_IMAGE}
 
 ARG HERMES_REPOSITORY=https://github.com/NousResearch/hermes-agent.git
-ARG HERMES_COMMIT=a97b6ff8f646f197efa14d405a1130c9951dcdd9
-ARG HERMES_VERSION=0.19.0
-ARG OO_CLI_VERSION=1.7.0
-ARG OO_CLI_SHA256_AMD64=1b2caec9e352399b4470dba9475c1681b9cbfabe397d47cbd23f44eb160c70e1
-ARG OO_CLI_SHA256_ARM64=20b269dc54c8db6319cb45419d66934ae6ed497364842ea996d37168cb92f8f7
+ARG HERMES_COMMIT=df4b65147d7ddd74dd449f9067aabbca5aef0ec7
+ARG HERMES_VERSION=0.20.2
+ARG OO_CLI_VERSION=1.7.4
+ARG OO_CLI_SHA256_AMD64=37595b2d8e4cc2c333524442f2b2400191a00bdf993d0925ee2fba11c6687fef
+ARG OO_CLI_SHA256_ARM64=6c1f8ae4fc65547288b2ef58a423212aa5709bd9cf075366bfeaa6be00bfd3dd
 ARG TARGETARCH
 ARG IMAGE_VERSION=dev
 ARG IMAGE_REVISION=unknown
@@ -71,10 +71,16 @@ RUN node --version
 WORKDIR /opt/hermes
 RUN git init . \
     && git remote add upstream "${HERMES_REPOSITORY}" \
-    && timeout 300s git \
-        -c http.lowSpeedLimit=1024 \
-        -c http.lowSpeedTime=45 \
-        fetch --depth 1 upstream "${HERMES_COMMIT}" \
+    && for attempt in 1 2 3; do \
+        timeout 600s git \
+            -c http.version=HTTP/1.1 \
+            -c http.lowSpeedLimit=128 \
+            -c http.lowSpeedTime=120 \
+            fetch --depth 1 upstream "${HERMES_COMMIT}" \
+            && break; \
+        if [ "${attempt}" -eq 3 ]; then exit 1; fi; \
+        sleep "$((attempt * 5))"; \
+    done \
     && git checkout --detach FETCH_HEAD \
     && test "$(git rev-parse HEAD)" = "${HERMES_COMMIT}" \
     && test "$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml", "rb"))["project"]["version"])')" = "${HERMES_VERSION}"
@@ -83,7 +89,8 @@ COPY patches/0001-skill-description-opt-in.patch /tmp/hermes-patches/
 RUN git apply --check /tmp/hermes-patches/0001-skill-description-opt-in.patch \
     && git apply /tmp/hermes-patches/0001-skill-description-opt-in.patch
 
-RUN uv sync --frozen --extra messaging
+RUN UV_PYTHON_INSTALL_DIR=/opt/uv-python uv sync --frozen --extra messaging \
+    && test -x /opt/hermes/.venv/bin/python
 
 RUN set -eu; \
     case "${TARGETARCH}" in \
