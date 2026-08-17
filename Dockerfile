@@ -73,6 +73,7 @@ RUN set -eu; \
 COPY plugins/image_gen/ /opt/hermes/plugins/image_gen/
 COPY plugins/video_gen/ /opt/hermes/plugins/video_gen/
 COPY plugins/web/ /opt/hermes/plugins/web/
+COPY plugins/common/ /opt/oomol-hermes-agent/provider-common/
 COPY skills/ /opt/oomol-hermes-agent/skills/
 COPY config/ /opt/oomol-hermes-agent/config/
 COPY scripts/ /opt/oomol-hermes-agent/scripts/
@@ -98,6 +99,9 @@ RUN uv pip install --python /opt/hermes/.venv/bin/python \
         /opt/hermes/plugins/image_gen/oo_nano_banana \
         /opt/hermes/plugins/video_gen/oo_seedance \
         /opt/hermes/plugins/web/oo_jina \
+    && PYTHONPATH=/opt/oomol-hermes-agent/provider-common \
+        /opt/hermes/.venv/bin/python -c \
+        'import importlib; [importlib.import_module(name) for name in ("plugins.image_gen.oo_gpt_image_2", "plugins.image_gen.oo_nano_banana", "plugins.video_gen.oo_seedance", "plugins.web.oo_jina")]' \
     && /opt/hermes/.venv/bin/python /opt/oomol-hermes-agent/scripts/verify-document-runtime.py
 
 ARG HERMES_UID=10000
@@ -114,6 +118,7 @@ ENV HOME=/data \
     HERMES_BUNDLED_SKILLS=/opt/oomol-hermes-agent/curated-skills \
     OO_CONFIG_DIR=/data/.config/oo \
     OO_SKILLS_SYNC_DISABLED=true \
+    PYTHONPATH=/opt/oomol-hermes-agent/provider-common \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH=/opt/hermes/.venv/bin:/usr/local/bin:/usr/bin:/bin
