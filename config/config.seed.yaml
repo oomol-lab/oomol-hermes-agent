@@ -4,6 +4,7 @@ terminal:
   timeout: 600
   env_passthrough:
     - OO_CONFIG_DIR
+    - OO_API_KEY
 skills:
   external_dirs:
     - /opt/oomol-hermes-agent/oo-skills

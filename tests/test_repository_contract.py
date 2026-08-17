@@ -104,6 +104,36 @@ def test_description_patch_is_fail_closed() -> None:
     assert "min(configured_max, 2000)" in patch
 
 
+def test_public_compose_uses_published_image_and_persistent_data() -> None:
+    compose = yaml.safe_load((ROOT / "compose.yaml").read_text())
+    service = compose["services"]["hermes"]
+    assert service["image"].startswith(
+        "${HERMES_IMAGE:-ghcr.io/oomol/oomol-hermes-agent:"
+    )
+    assert "build" not in service
+    assert service["command"] == ["hermes", "gateway", "run"]
+    assert "hermes-data:/data" in service["volumes"]
+    assert "hermes-data" in compose["volumes"]
+    assert service["environment"]["OO_API_KEY"] == "${OO_API_KEY:-}"
+    assert "oo-auth" not in compose["services"]
+
+    seed = yaml.safe_load((ROOT / "config/config.seed.yaml").read_text())
+    assert "OO_API_KEY" in seed["terminal"]["env_passthrough"]
+
+
+def test_development_compose_builds_the_local_image() -> None:
+    compose = yaml.safe_load((ROOT / "compose.dev.yaml").read_text())
+    service = compose["services"]["hermes"]
+    assert service["image"] == "oomol-hermes-agent:dev"
+    assert service["build"]["context"] == "."
+
+
+def test_makefile_does_not_manage_oo_authentication() -> None:
+    makefile = (ROOT / "Makefile").read_text()
+    assert "oo auth" not in makefile
+    assert "compose-auth" not in makefile
+
+
 def test_scripts_compile() -> None:
     result = subprocess.run(
         [sys.executable, "-m", "compileall", "-q", "scripts", "plugins"],

@@ -4,41 +4,32 @@ IMAGE ?= oomol-hermes-agent:dev
 DATA_VOLUME ?= oomol-hermes-agent-data
 GATEWAY_PORT ?= 8766
 DOCKER ?= docker
-UV ?= uv
 COMMAND ?=
+COMPOSE ?= $(DOCKER) compose
+DEV_COMPOSE_FILES := -f compose.yaml -f compose.dev.yaml
 
 .DEFAULT_GOAL := help
 
-.PHONY: help sync test check build smoke volume run run-clean auth auth-status gateway
+.PHONY: help build smoke volume run run-clean gateway compose-config compose-build compose-up compose-down compose-logs compose-cli
 
 help:
 	@echo "OOMOL Hermes Agent development commands:"
 	@echo "  make build        Build the local Docker image"
 	@echo "  make run          Start Hermes with persistent data"
 	@echo "  make run-clean    Start Hermes with fresh, disposable data"
-	@echo "  make test         Run repository tests"
-	@echo "  make check        Run repository tests and whitespace checks"
-	@echo "  make smoke        Check OO and Hermes inside the built image"
-	@echo "  make auth         Authenticate OO in the persistent volume"
-	@echo "  make auth-status  Inspect persisted OO authentication"
+	@echo "  make smoke        Check Hermes inside the built image"
 	@echo "  make gateway      Start the Hermes gateway"
+	@echo "  make compose-up   Build and start the development gateway"
+	@echo "  make compose-down Stop the development gateway"
+	@echo "  make compose-logs Follow development gateway logs"
+	@echo "  make compose-cli  Open a one-off Hermes CLI"
 	@echo ""
-	@echo "Overrides: IMAGE, DATA_VOLUME, GATEWAY_PORT, DOCKER, UV, COMMAND"
-
-sync:
-	$(UV) sync
-
-test:
-	$(UV) run pytest
-
-check: test
-	git diff --check
+	@echo "Overrides: IMAGE, DATA_VOLUME, GATEWAY_PORT, DOCKER, COMMAND, COMPOSE"
 
 build:
 	$(DOCKER) build --progress=plain -t "$(IMAGE)" .
 
 smoke:
-	$(DOCKER) run --rm "$(IMAGE)" oo --version
 	$(DOCKER) run --rm "$(IMAGE)" hermes --help
 
 volume:
@@ -53,18 +44,26 @@ run: volume
 run-clean:
 	$(DOCKER) run --rm -it "$(IMAGE)" $(COMMAND)
 
-auth: volume
-	$(DOCKER) run --rm -it \
-		-v "$(DATA_VOLUME):/data" \
-		"$(IMAGE)" oo auth login
-
-auth-status: volume
-	$(DOCKER) run --rm \
-		-v "$(DATA_VOLUME):/data" \
-		"$(IMAGE)" oo auth status --json
-
 gateway: volume
 	$(DOCKER) run --rm -it \
 		-p "$(GATEWAY_PORT):8766" \
 		-v "$(DATA_VOLUME):/data" \
 		"$(IMAGE)" hermes gateway run
+
+compose-config:
+	$(COMPOSE) $(DEV_COMPOSE_FILES) config
+
+compose-build:
+	$(COMPOSE) $(DEV_COMPOSE_FILES) build
+
+compose-up:
+	$(COMPOSE) $(DEV_COMPOSE_FILES) up -d --build
+
+compose-down:
+	$(COMPOSE) $(DEV_COMPOSE_FILES) down
+
+compose-logs:
+	$(COMPOSE) $(DEV_COMPOSE_FILES) logs -f hermes
+
+compose-cli:
+	$(COMPOSE) $(DEV_COMPOSE_FILES) run --rm hermes hermes

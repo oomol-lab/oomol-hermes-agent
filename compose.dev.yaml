@@ -1,0 +1,5 @@
+services:
+  hermes:
+    image: oomol-hermes-agent:dev
+    build:
+      context: .
