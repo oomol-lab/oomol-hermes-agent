@@ -115,3 +115,9 @@ make check
 
 `make check` runs repository tests in Docker and then checks the working-tree
 diff. Use Linux line endings for all text files.
+
+## Releases
+
+Image releases use immutable date tags, publish multi-platform images to GHCR,
+and create a GitHub Release. See [Release Process](release.md) for the workflow,
+retry procedure, and optional Feishu notification setup.

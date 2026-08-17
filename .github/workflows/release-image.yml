@@ -1,47 +1,206 @@
-name: Release image
+name: Hermes Agent image
 
 on:
+  pull_request:
+    branches: [main]
   push:
+    branches: [main]
     tags:
-      - "v*"
+      - "v[0-9][0-9][0-9][0-9].[0-9][0-9].[0-9][0-9]-*"
   workflow_dispatch:
+    inputs:
+      reuse_tag:
+        description: Existing immutable release tag to retry
+        required: false
+        type: string
 
 permissions:
   contents: read
-  packages: write
-  id-token: write
+
+concurrency:
+  group: oomol-hermes-agent-image-${{ (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) && 'release' || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
 
 jobs:
-  image:
+  build-validation:
+    name: Build linux/amd64 image (${{ github.event_name }})
+    if: github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
         with:
+          fetch-depth: 1
           persist-credentials: false
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+
+      - name: Enable Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build linux/amd64 image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false
+          provenance: false
+          cache-from: type=gha,scope=oomol-hermes-agent
+          cache-to: ${{ github.event_name == 'push' && 'type=gha,mode=max,scope=oomol-hermes-agent' || '' }}
+          build-args: |
+            IMAGE_VERSION=${{ github.sha }}
+            IMAGE_REVISION=${{ github.sha }}
+            IMAGE_SOURCE=https://github.com/${{ github.repository }}
+
+  prepare-release:
+    name: Prepare immutable release tag
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    outputs:
+      release_tag: ${{ steps.release.outputs.release_tag }}
+      source_commit: ${{ steps.release.outputs.source_commit }}
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure release commit identity
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Prepare release tag
+        id: release
+        env:
+          RELEASE_EVENT_NAME: ${{ github.event_name }}
+          RELEASE_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_DISPATCH_SHA: ${{ github.sha }}
+          REUSE_RELEASE_TAG: ${{ inputs.reuse_tag }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "$REUSE_RELEASE_TAG" ]; then
+            scripts/prepare-release.sh --reuse-tag "$REUSE_RELEASE_TAG"
+          elif [ "$RELEASE_EVENT_NAME" = "workflow_dispatch" ]; then
+            scripts/prepare-release.sh --push
+          else
+            scripts/prepare-release.sh
+          fi
+
+  release-image:
+    name: Build and publish release image
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    needs: [prepare-release]
+    outputs:
+      release_image: ${{ steps.publish_image.outputs.release_image }}
+      release_digest: ${{ steps.publish_image.outputs.release_digest }}
+      release_summary: ${{ steps.publish_release.outputs.release_summary }}
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+    env:
+      IMAGE_REPOSITORY: ghcr.io/${{ github.repository }}
+      IMAGE_SOURCE: https://github.com/${{ github.repository }}
+      RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
+      RELEASE_COMMIT_SHA: ${{ needs.prepare-release.outputs.source_commit }}
+      PUBLISH_LATEST: "1"
+      DOCKER_CACHE_FROM: type=gha,scope=oomol-hermes-agent-release
+      DOCKER_CACHE_TO: type=gha,mode=max,scope=oomol-hermes-agent-release
+    steps:
+      - name: Checkout prepared release
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.prepare-release.outputs.release_tag }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - id: meta
-        uses: docker/metadata-action@v5
+
+      - name: Enable QEMU for linux/arm64
+        uses: docker/setup-qemu-action@v3
+
+      - name: Enable Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run release tests
+        run: make test
+
+      - name: Check whitespace
+        run: git diff --check
+
+      - name: Build and push release tags
+        id: publish_image
+        run: scripts/release.sh
+
+      - name: Publish GitHub Release
+        id: publish_release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OOMOL_RELEASE_SUMMARY_API_KEY: ${{ secrets.OOMOL_RELEASE_SUMMARY_API_KEY }}
+          OOMOL_RELEASE_SUMMARY_MODEL: deepseek-v4-flash
+          RELEASE_SUMMARY_FILE: ${{ runner.temp }}/hermes-agent-release-summary.md
+        run: |
+          notes_file="$(mktemp)"
+          trap 'rm -f "$notes_file"' EXIT
+          scripts/generate-release-notes.sh > "$notes_file"
+          if [ -s "$RELEASE_SUMMARY_FILE" ]; then
+            delimiter="release-summary-$(python3 -c 'import uuid; print(uuid.uuid4())')"
+            {
+              printf 'release_summary<<%s\n' "$delimiter"
+              cat "$RELEASE_SUMMARY_FILE"
+              printf '%s\n' "$delimiter"
+            } >> "$GITHUB_OUTPUT"
+          fi
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release edit "$RELEASE_TAG" \
+              --latest \
+              --notes-file "$notes_file" \
+              --title "$RELEASE_TAG"
+          else
+            gh release create "$RELEASE_TAG" \
+              --latest \
+              --notes-file "$notes_file" \
+              --title "$RELEASE_TAG" \
+              --verify-tag
+          fi
+
+  notify-feishu-release:
+    name: Notify Feishu release group
+    if: >-
+      (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) &&
+      needs.release-image.result == 'success'
+    needs: [prepare-release, release-image]
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    permissions:
+      contents: read
+    env:
+      RELEASE_TAG: ${{ needs.prepare-release.outputs.release_tag }}
+      RELEASE_IMAGE: ${{ needs.release-image.outputs.release_image }}
+      RELEASE_SUMMARY: ${{ needs.release-image.outputs.release_summary }}
+      FEISHU_RELEASE_WEBHOOK: ${{ secrets.FEISHU_RELEASE_WEBHOOK }}
+      FEISHU_RELEASE_SECRET: ${{ secrets.FEISHU_RELEASE_SECRET }}
+    steps:
+      - name: Checkout release source
+        if: env.FEISHU_RELEASE_WEBHOOK != ''
+        uses: actions/checkout@v4
         with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=tag
-            type=raw,value=dev,enable=${{ github.event_name == 'workflow_dispatch' }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          provenance: mode=max
-          sbom: true
-          build-args: |
-            IMAGE_VERSION=${{ github.ref_name }}
-            IMAGE_REVISION=${{ github.sha }}
-            IMAGE_SOURCE=https://github.com/${{ github.repository }}
+          ref: ${{ needs.prepare-release.outputs.release_tag }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Notify Feishu release group
+        if: env.FEISHU_RELEASE_WEBHOOK != ''
+        run: python3 scripts/notify-feishu-release.py
+
+      - name: Record skipped notification
+        if: env.FEISHU_RELEASE_WEBHOOK == ''
+        run: echo "Feishu notification skipped because FEISHU_RELEASE_WEBHOOK is not configured."

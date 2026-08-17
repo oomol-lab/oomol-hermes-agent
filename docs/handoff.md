@@ -123,8 +123,8 @@ tools were intentionally not migrated.
 5. Add safe config migrations for existing volumes before changing seed
    defaults after the first release.
 6. Confirm and document OO CLI redistribution/license terms.
-7. Generate an SBOM and provenance attestation in the release workflow.
-8. Publish the initial image to `ghcr.io/oomol/oomol-hermes-agent`.
+7. Run the initial release workflow, verify its SBOM and provenance
+   attestations, and publish `ghcr.io/oomol-lab/oomol-hermes-agent`.
 
 ## Known Design Debt
 

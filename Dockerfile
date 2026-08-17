@@ -11,13 +11,15 @@ ARG OO_CLI_SHA256_ARM64=6c1f8ae4fc65547288b2ef58a423212aa5709bd9cf075366bfeaa6be
 ARG TARGETARCH
 ARG IMAGE_VERSION=dev
 ARG IMAGE_REVISION=unknown
-ARG IMAGE_SOURCE=https://github.com/oomol/oomol-hermes-agent
+ARG IMAGE_SOURCE=https://github.com/oomol-lab/oomol-hermes-agent
+ARG IMAGE_CREATED=unknown
 
 LABEL org.opencontainers.image.title="OOMOL Hermes Agent" \
       org.opencontainers.image.description="Hermes Agent Docker distribution with OO CLI, curated Skills, and OOMOL providers" \
       org.opencontainers.image.version="${IMAGE_VERSION}" \
       org.opencontainers.image.revision="${IMAGE_REVISION}" \
       org.opencontainers.image.source="${IMAGE_SOURCE}" \
+      org.opencontainers.image.created="${IMAGE_CREATED}" \
       org.opencontainers.image.vendor="OOMOL" \
       org.opencontainers.image.licenses="MIT" \
       com.oomol.hermes.version="${HERMES_VERSION}" \

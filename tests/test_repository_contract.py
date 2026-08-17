@@ -112,7 +112,7 @@ def test_public_compose_uses_published_image_and_persistent_data() -> None:
     compose = yaml.safe_load((ROOT / "compose.yaml").read_text())
     service = compose["services"]["hermes"]
     assert service["image"].startswith(
-        "${HERMES_IMAGE:-ghcr.io/oomol/oomol-hermes-agent:"
+        "${HERMES_IMAGE:-ghcr.io/oomol-lab/oomol-hermes-agent:"
     )
     assert "build" not in service
     assert service["command"] == ["hermes", "gateway", "run"]

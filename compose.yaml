@@ -2,7 +2,7 @@ name: oomol-hermes-agent
 
 services:
   hermes:
-    image: ${HERMES_IMAGE:-ghcr.io/oomol/oomol-hermes-agent:latest}
+    image: ${HERMES_IMAGE:-ghcr.io/oomol-lab/oomol-hermes-agent:latest}
     restart: unless-stopped
     init: true
     environment:
