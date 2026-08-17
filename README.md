@@ -111,11 +111,21 @@ The public installation path uses `compose.yaml`, a prebuilt image, and a named
 volume for all state. The gateway binds to `127.0.0.1:8766` by default.
 `OO_API_KEY` is the only OO-specific Compose environment variable.
 
+Prepare the local environment file once before starting either workflow:
+
+```sh
+cp .env.example .env
+chmod 600 .env
+```
+
+Edit `.env` and set `OO_API_KEY`. Compose reads this file automatically and
+passes the explicitly declared variables to the container; users do not need
+to configure the container environment separately.
+
 The image has not been published to GHCR yet. Until the first release, use the
 development override to build it from this checkout:
 
 ```sh
-cp .env.example .env
 docker compose -f compose.yaml -f compose.dev.yaml build
 docker compose -f compose.yaml -f compose.dev.yaml up -d
 docker compose -f compose.yaml -f compose.dev.yaml logs -f hermes
@@ -133,7 +143,6 @@ After the image is published, the end-user installation flow will require only
 the released Compose files, not a source checkout or the development override:
 
 ```sh
-cp .env.example .env
 docker compose pull
 docker compose up -d
 docker compose logs -f hermes
