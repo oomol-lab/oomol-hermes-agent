@@ -1,0 +1,7 @@
+name: oo_jina
+version: "0.1.0"
+description: "OOMOL-managed Jina Reader web search backend for Hermes web_search."
+author: "OOMOL"
+kind: backend
+provides_web_providers:
+  - oo_jina

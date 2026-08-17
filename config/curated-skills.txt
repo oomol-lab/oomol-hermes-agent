@@ -1,0 +1,6 @@
+# OOMOL-owned skills enabled in the OOMOL image.
+# Paths are relative to oomol/skills/.
+
+productivity/office-files
+productivity/pdf-files
+research/public-social-research

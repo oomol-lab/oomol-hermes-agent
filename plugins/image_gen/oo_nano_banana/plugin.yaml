@@ -1,0 +1,5 @@
+name: oo_nano_banana
+version: "0.1.0"
+description: "OOMOL/OOCI Nano Banana image generation backend for Hermes image_generate, using oo connector run fusion-api."
+author: "OOMOL"
+kind: backend

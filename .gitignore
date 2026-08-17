@@ -1,0 +1,10 @@
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+.venv/
+__pycache__/
+*.py[cod]
+dist/
+build/
+*.local
+.env

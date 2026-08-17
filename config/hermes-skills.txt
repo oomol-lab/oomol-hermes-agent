@@ -1,0 +1,9 @@
+# Hermes bundled skills enabled in the OOMOL image.
+# Paths are relative to the repository's skills/ directory.
+
+autonomous-ai-agents/hermes-agent
+creative/architecture-diagram
+creative/excalidraw
+productivity/nano-pdf
+productivity/ocr-and-documents
+software-development/plan

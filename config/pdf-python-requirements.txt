@@ -1,0 +1,8 @@
+# PDF document support dependencies installed into /opt/hermes/.venv.
+# Keep this file pinned so image builds are reproducible.
+reportlab==4.4.5
+pypdf==6.14.2
+PyMuPDF==1.28.0
+pyHanko==0.32.0
+pyhanko-cli==0.2.1
+tzdata==2026.2

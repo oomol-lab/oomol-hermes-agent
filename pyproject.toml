@@ -1,0 +1,16 @@
+[project]
+name = "oomol-hermes-agent-build"
+version = "0.1.0"
+description = "Build and validation tooling for OOMOL Hermes Agent."
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "PyYAML==6.0.3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest==9.0.2",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

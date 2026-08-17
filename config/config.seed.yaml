@@ -1,0 +1,34 @@
+terminal:
+  backend: local
+  cwd: /data/workspace
+  timeout: 600
+  env_passthrough:
+    - OO_CONFIG_DIR
+skills:
+  external_dirs:
+    - /opt/oomol-hermes-agent/oo-skills
+plugins:
+  enabled:
+    - image_gen/oo_gpt_image_2
+    - image_gen/oo_nano_banana
+    - video_gen/oo_seedance
+    - web/oo_jina
+image_gen:
+  provider: oo_gpt_image_2
+  model: gpt-image-2
+video_gen:
+  provider: oo_seedance
+  model: doubao-seedance-2-0-260128
+web:
+  search_backend: oo_jina
+platform_toolsets:
+  cli:
+    - hermes-cli
+    - image_gen
+    - video_gen
+    - search
+  cron:
+    - hermes-cron
+    - image_gen
+    - video_gen
+    - search

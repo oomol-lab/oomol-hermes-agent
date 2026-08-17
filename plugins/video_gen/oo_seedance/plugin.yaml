@@ -1,0 +1,5 @@
+name: oo_seedance
+version: "0.1.0"
+description: "OOMOL/OOCI Seedance video generation backend for Hermes video_generate, using oo connector run fusion-api."
+author: "OOMOL"
+kind: backend

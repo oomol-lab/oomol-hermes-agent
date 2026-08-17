@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "hermes": {
+    "repository": "https://github.com/NousResearch/hermes-agent.git",
+    "commit": "a97b6ff8f646f197efa14d405a1130c9951dcdd9",
+    "version": "0.19.0"
+  },
+  "oo_cli": {
+    "version": "1.7.0",
+    "artifacts": {
+      "linux-amd64": {
+        "platform": "x64",
+        "sha256": "1b2caec9e352399b4470dba9475c1681b9cbfabe397d47cbd23f44eb160c70e1"
+      },
+      "linux-arm64": {
+        "platform": "arm64",
+        "sha256": "20b269dc54c8db6319cb45419d66934ae6ed497364842ea996d37168cb92f8f7"
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+name: oo_gpt_image_2
+version: "0.1.0"
+description: "OOMOL/OOCI GPT Image 2 backend for Hermes image_generate, using oo connector run fusion-api."
+author: "OOMOL"
+kind: backend
