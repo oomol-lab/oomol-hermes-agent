@@ -20,9 +20,9 @@
 
 ## 快速开始
 
-[![OOMOL Hermes Agent 快速上手视频](https://i.ytimg.com/vi/VWR-JDp-axM/hqdefault.jpg)](https://youtu.be/VWR-JDp-axM)
+[![OOMOL Hermes Agent 快速上手视频](https://i.ytimg.com/vi/jc7Y2Oy1hhA/hqdefault.jpg)](https://youtu.be/jc7Y2Oy1hhA)
 
-[在 YouTube 观看快速上手视频](https://youtu.be/VWR-JDp-axM)。
+[在 YouTube 观看快速上手视频](https://youtu.be/jc7Y2Oy1hhA)。
 
 启动前：
 

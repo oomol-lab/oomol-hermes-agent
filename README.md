@@ -22,9 +22,9 @@ OOMOL providers, and selected Skills preconfigured.
 
 ## Quick Start
 
-[![OOMOL Hermes Agent quick-start video](https://i.ytimg.com/vi/VWR-JDp-axM/hqdefault.jpg)](https://youtu.be/VWR-JDp-axM)
+[![OOMOL Hermes Agent quick-start video](https://i.ytimg.com/vi/jc7Y2Oy1hhA/hqdefault.jpg)](https://youtu.be/jc7Y2Oy1hhA)
 
-[Watch the quick-start video on YouTube](https://youtu.be/VWR-JDp-axM).
+[Watch the quick-start video on YouTube](https://youtu.be/jc7Y2Oy1hhA).
 
 Before starting:
 
