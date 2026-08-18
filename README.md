@@ -53,10 +53,17 @@ Keep `OO_LLM_MODEL` to use the preconfigured OOMOL model. If it is not set,
 configure a model inside Docker yourself.
 
 Use the included [compose.yaml](compose.yaml) to pull the published image and
-start the agent:
+start the agent. Messaging setup is optional:
 
 ```sh
 docker compose pull
+
+# Optional: configure a messaging platform with the interactive wizard
+# Settings are saved in the persistent data volume. Skip this command if a
+# messaging platform is already configured.
+# Supported platforms: https://hermes-agent.nousresearch.com/docs/user-guide/messaging/
+docker compose run --rm hermes hermes gateway setup
+
 docker compose up -d
 docker compose logs -f hermes
 ```
@@ -109,7 +116,7 @@ make compose-up
 ```
 
 Development Compose runs only the messaging gateway and does not publish a host
-port. Use a configured messaging platform such as Telegram for testing.
+port. Use a configured messaging platform for testing.
 
 See [docs/development.md](docs/development.md) and
 [docs/architecture.md](docs/architecture.md) for details.

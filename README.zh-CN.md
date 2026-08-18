@@ -50,15 +50,20 @@ OO_LLM_API_MODE=codex_responses
 保留 `OO_LLM_MODEL` 即可使用预配置的 OOMOL 模型。如果不配置，则需要进入
 Docker 自行配置要使用的模型。
 
-使用项目提供的 [compose.yaml](compose.yaml) 拉取发布镜像并启动 Agent：
+使用项目提供的 [compose.yaml](compose.yaml) 拉取发布镜像并启动 Agent。消息平台
+配置为可选步骤：
 
 ```sh
 docker compose pull
+
+# 可选：通过交互式向导配置消息平台
+# 配置结果会保存在持久化数据卷中。如果已经配置过消息平台，可以跳过这条命令。
+# 支持的平台及其配置要求：https://hermes-agent.nousresearch.com/docs/user-guide/messaging/
+docker compose run --rm hermes hermes gateway setup
+
 docker compose up -d
 docker compose logs -f hermes
 ```
-
-消息 Gateway 本身不暴露网络端口。
 
 ## 内置 Skills
 
@@ -101,8 +106,8 @@ make build
 make compose-up
 ```
 
-开发 Compose 只运行消息 Gateway，不对宿主机开放端口。测试时可使用已经配置的
-Telegram 等消息平台。
+开发 Compose 只运行消息 Gateway，不对宿主机开放端口。测试时请使用已经配置的
+消息平台。
 
 详细说明见 [docs/development.md](docs/development.md) 和
 [docs/architecture.md](docs/architecture.md)。
