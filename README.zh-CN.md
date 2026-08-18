@@ -20,6 +20,8 @@
 
 ## 快速开始
 
+[![OOMOL Hermes Agent 快速上手视频](https://i.ytimg.com/vi/VWR-JDp-axM/hqdefault.jpg)](https://youtu.be/VWR-JDp-axM)
+
 [在 YouTube 观看快速上手视频](https://youtu.be/VWR-JDp-axM)。
 
 启动前：

@@ -22,6 +22,8 @@ OOMOL providers, and selected Skills preconfigured.
 
 ## Quick Start
 
+[![OOMOL Hermes Agent quick-start video](https://i.ytimg.com/vi/VWR-JDp-axM/hqdefault.jpg)](https://youtu.be/VWR-JDp-axM)
+
 [Watch the quick-start video on YouTube](https://youtu.be/VWR-JDp-axM).
 
 Before starting:
