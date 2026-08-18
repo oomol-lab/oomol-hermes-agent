@@ -26,9 +26,9 @@ Hermes 可以发现和使用 OOMOL 中已连接的外部服务，无需在 Agent
 
 ## 快速开始
 
-[![OOMOL Hermes Agent 快速上手视频](https://i.ytimg.com/vi/jc7Y2Oy1hhA/hqdefault.jpg)](https://youtu.be/jc7Y2Oy1hhA)
+[![OOMOL Hermes Agent 快速上手视频](https://i.ytimg.com/vi/ADcut9cBtBY/hqdefault.jpg)](https://youtu.be/ADcut9cBtBY)
 
-[在 YouTube 观看快速上手视频](https://youtu.be/jc7Y2Oy1hhA)。
+[在 YouTube 观看快速上手视频](https://youtu.be/ADcut9cBtBY)。
 
 启动前：
 
