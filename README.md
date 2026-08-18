@@ -3,11 +3,18 @@
 [简体中文](README.zh-CN.md)
 
 A ready-to-run Docker distribution of
-[Hermes Agent](https://github.com/NousResearch/hermes-agent), with OO CLI,
-OOMOL providers, and selected Skills preconfigured.
+[Hermes Agent](https://github.com/NousResearch/hermes-agent), with
+[OO CLI](https://oomol.com/en/cli/), OOMOL providers, and selected Skills
+preconfigured.
 
-> Prefer a managed experience? Use [Leina](https://leina.ai/) without
-> maintaining your own Docker environment.
+The model, media, and search integrations are preconfigured to work through one
+OOMOL account. OO CLI lets Hermes discover and use external services connected
+through OOMOL without configuring each integration inside the agent. Provider
+credentials stay in the Connector layer, outside the Hermes runtime. The image
+preserves the complete standard Hermes feature set.
+
+> <img src="https://leina.ai/img/brand/lena-avatar/web/lena-app-icon-180.png" alt="Leina" width="24" height="24"> Prefer a managed experience? Use
+> [Leina](https://leina.ai/) without maintaining your own Docker environment.
 
 ## What's Included
 
@@ -17,8 +24,8 @@ OOMOL providers, and selected Skills preconfigured.
 - **Image generation** — GPT Image 2 and Nano Banana providers.
 - **Video generation** — Seedance text-to-video and image-to-video provider.
 - **Web search** — Jina Reader as the default Hermes search backend.
-- **Bundled Skills** — document processing, public social research, diagrams,
-  planning, and OO Skill management.
+- **OOMOL and OO Skills** — connected-service access, Office and PDF
+  processing, public social research, and OO Skill management.
 
 ## Quick Start
 
@@ -74,23 +81,20 @@ docker compose logs -f hermes
 
 The messaging gateway does not expose a network port.
 
-## Bundled Skills
+## OOMOL and OO Skills
 
-The image includes selected Hermes, OOMOL, and OO framework Skills.
+The image adds the following OOMOL and OO framework Skills:
 
 | Category | Skills |
 | --- | --- |
 | OO capabilities | `oo` |
 | Skill management | `oo-find-skills`, `oo-create-skill`, `oo-publish-skill` |
-| Office and PDF | `office-files`, `pdf-files`, `nano-pdf`, `ocr-and-documents` |
+| Office and PDF | `office-files`, `pdf-files` |
 | Public research | `public-social-research` |
-| Diagrams | `architecture-diagram`, `excalidraw` |
-| Planning | `plan` |
-| Hermes guidance | `hermes-agent` |
 
 These Skills let Hermes work with Office and PDF files, extract text with OCR,
-research public social content, create diagrams, plan complex work, and find or
-manage Skills through OO.
+research public social content, use connected services, and find or manage
+Skills through OO.
 
 ## Configuration and Data
 

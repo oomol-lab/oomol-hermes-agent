@@ -4,9 +4,14 @@
 
 一个开箱即用的
 [Hermes Agent](https://github.com/NousResearch/hermes-agent) Docker 发行版，
-预装 OO CLI、OOMOL Provider 和精选 Skills。
+预装 [OO CLI](https://oomol.com/zh-cn/cli/)、OOMOL Provider 和精选 Skills。
 
-> 不想自行维护 Docker 环境？可以直接使用
+模型、多媒体和搜索能力已经预配置，可通过同一个 OOMOL 账号使用。OO CLI 让
+Hermes 可以发现和使用 OOMOL 中已连接的外部服务，无需在 Agent 内逐项配置集成。
+各服务的 Provider 凭据保留在 Connector 层，不进入 Hermes 运行环境。镜像完整
+保留 Hermes 的标准功能。
+
+> <img src="https://leina.ai/img/brand/lena-avatar/web/lena-app-icon-180.png" alt="Leina" width="24" height="24"> 不想自行维护 Docker 环境？可以直接使用
 > [OOMOL 托管的 Leina](https://leina.ai/)。
 
 ## 内置能力
@@ -16,7 +21,8 @@
 - **图片生成**：预配置 GPT Image 2 和 Nano Banana。
 - **视频生成**：预配置 Seedance，支持文生视频和图生视频。
 - **网页搜索**：使用 Jina Reader 作为 Hermes 默认搜索后端。
-- **精选 Skills**：覆盖文档处理、公开内容研究、图表、任务规划和 Skill 管理。
+- **OOMOL 与 OO Skills**：调用已连接的外部服务、处理 Office 和 PDF、研究公开
+  内容，以及管理 OO Skills。
 
 ## 快速开始
 
@@ -69,22 +75,19 @@ docker compose up -d
 docker compose logs -f hermes
 ```
 
-## 内置 Skills
+## OOMOL 与 OO Skills
 
-镜像中包含精选的 Hermes、OOMOL 和 OO Framework Skills。
+镜像额外加入以下 OOMOL 和 OO Framework Skills：
 
 | 分类 | Skills |
 | --- | --- |
 | OO 托管能力 | `oo` |
 | Skill 管理 | `oo-find-skills`、`oo-create-skill`、`oo-publish-skill` |
-| Office 和 PDF | `office-files`、`pdf-files`、`nano-pdf`、`ocr-and-documents` |
+| Office 和 PDF | `office-files`、`pdf-files` |
 | 公开内容研究 | `public-social-research` |
-| 图表 | `architecture-diagram`、`excalidraw` |
-| 任务规划 | `plan` |
-| Hermes 使用指南 | `hermes-agent` |
 
 通过这些 Skills，Hermes 可以处理 Office 和 PDF 文件、执行 OCR、研究公开社交
-平台内容、创建图表、规划复杂任务，以及通过 OO 查找和管理其他 Skills。
+平台内容、调用已连接的外部服务，以及通过 OO 查找和管理其他 Skills。
 
 ## 配置与数据
 
