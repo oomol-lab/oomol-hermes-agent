@@ -6,7 +6,7 @@ A ready-to-run Docker distribution of
 [Hermes Agent](https://github.com/NousResearch/hermes-agent), with OO CLI,
 OOMOL providers, and selected Skills preconfigured.
 
-> Prefer a managed experience? Use [Leina](https://app.oomol.com/) without
+> Prefer a managed experience? Use [Leina](https://leina.ai/) without
 > maintaining your own Docker environment.
 
 ## What's Included

@@ -7,7 +7,7 @@
 预装 OO CLI、OOMOL Provider 和精选 Skills。
 
 > 不想自行维护 Docker 环境？可以直接使用
-> [OOMOL 托管的 Leina](https://app.oomol.com/)。
+> [OOMOL 托管的 Leina](https://leina.ai/)。
 
 ## 内置能力
 
