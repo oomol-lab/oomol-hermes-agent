@@ -20,6 +20,8 @@
 
 ## 快速开始
 
+[在 YouTube 观看快速上手视频](https://youtu.be/VWR-JDp-axM)。
+
 启动前：
 
 1. 前往 [OOMOL Console](https://console.oomol.com/) 注册或登录账号。

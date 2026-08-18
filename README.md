@@ -22,6 +22,8 @@ OOMOL providers, and selected Skills preconfigured.
 
 ## Quick Start
 
+[Watch the quick-start video on YouTube](https://youtu.be/VWR-JDp-axM).
+
 Before starting:
 
 1. [Create or sign in to an OOMOL account](https://console.oomol.com/).
