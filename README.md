@@ -29,9 +29,9 @@ preserves the complete standard Hermes feature set.
 
 ## Quick Start
 
-[![OOMOL Hermes Agent quick-start video](https://i.ytimg.com/vi/ADcut9cBtBY/hqdefault.jpg)](https://youtu.be/ADcut9cBtBY)
+[![OOMOL Hermes Agent quick-start video](https://i.ytimg.com/vi/Vl1IPgq03hg/hqdefault.jpg)](https://youtu.be/Vl1IPgq03hg)
 
-[Watch the quick-start video on YouTube](https://youtu.be/ADcut9cBtBY).
+[Watch the quick-start video on YouTube](https://youtu.be/Vl1IPgq03hg).
 
 Before starting:
 
